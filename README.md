@@ -102,7 +102,7 @@ Corrections are welcome — most non-French/English lines were machine-assisted 
 
 ## License
 
-GPL-3.0 — see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE). Copy it, change it, reuse it in your own mods: just keep the authors notice.
 
 Risk of Rain 2 belongs to Hopoo Games / Gearbox, Skyrim to Bethesda. This is an unofficial fan mod; no
 game assets are included in this repository — models and textures are converted on your own PC from
