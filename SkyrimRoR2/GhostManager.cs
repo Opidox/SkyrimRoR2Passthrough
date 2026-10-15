@@ -156,8 +156,7 @@ namespace SkyrimRoR2
         {
             _log = log;
             _pushEnabled = ConfigMove.Bind(config, "Monde", "2 - Jeu", "DeplacerEnnemisSkyrim", true,
-                "Les ennemis Skyrim bougent quand RoR2 les deplace : tires par le grappin de la Chargeuse, " +
-                "portes par un drone, projetes par un coup puissant...");
+                "Skyrim enemies move when RoR2 moves them: pulled by the Loader's grapple, carried by a drone, knocked back by a strong hit...");
         }
 
         // Si cette barre de vie appartient à un double, donne l'ennemi Skyrim correspondant,

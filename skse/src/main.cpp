@@ -6,6 +6,7 @@
 #include "Hud.h"
 #include "InputWatcher.h"
 #include "Items.h"
+#include "Lang.h"
 #include "Launcher.h"
 #include "Loadouts.h"
 #include "Loot.h"
@@ -224,10 +225,10 @@ namespace
 			if (!alive) {
 				if (connected) {
 					logger::info("RoR2 ne repond plus");
-					Show("SkyrimRoR2 : RoR2 ne repond plus");
+					Show(skyrimror2::Lang::T("SkyrimRoR2 : RoR2 ne repond plus"));
 					connected = false;
 				} else if (!toldWaiting) {
-					Show("SkyrimRoR2 : en attente de RoR2...");
+					Show(skyrimror2::Lang::T("SkyrimRoR2 : en attente de RoR2..."));
 					toldWaiting = true;
 				}
 				continue;
@@ -235,7 +236,7 @@ namespace
 
 			if (!connected) {
 				logger::info("RoR2 connecte");
-				Show("SkyrimRoR2 : RoR2 connecte");
+				Show(skyrimror2::Lang::T("SkyrimRoR2 : RoR2 connecte"));
 				connected = true;
 				toldWaiting = false;
 			}
@@ -261,6 +262,7 @@ namespace
 	{
 		switch (a_msg->type) {
 		case SKSE::MessagingInterface::kDataLoaded:
+			skyrimror2::Lang::Init();  // 0.74 : la langue de Skyrim (et on la donne a RoR2 avant de le lancer)
 			KeepRunningInBackground();
 			skyrimror2::Config::Get().Load();
 			skyrimror2::InputWatcher::Get().Install();
@@ -302,7 +304,7 @@ SKSEPluginLoad(const SKSE::LoadInterface* a_skse)
 	info.trampolineSize = 64;  // place pour les 2 crochets du HUD
 	SKSE::Init(a_skse, info);
 	SetupLog();
-	logger::info("SkyrimRoR2 0.73.9 charge (Skyrim {})", a_skse->RuntimeVersion().string());
+	logger::info("SkyrimRoR2 0.74.0 charge (Skyrim {})", a_skse->RuntimeVersion().string());
 	skyrimror2::Hud::Install();  // avant que Skyrim ne cree sa fenetre
 	skyrimror2::Allies::PrepareFiles();  // les modeles des allies doivent exister des le lancement
 	skyrimror2::Solids::PrepareFiles();  // 0.66 : les boites de collision (cube de detritus)

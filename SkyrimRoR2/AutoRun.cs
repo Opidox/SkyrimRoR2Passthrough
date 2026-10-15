@@ -484,7 +484,7 @@ namespace SkyrimRoR2
                 var lines = SurvivorCatalog.allSurvivorDefs
                     .Where(d => d != null && !d.hidden && d.bodyPrefab != null && IsPlayable(d))
                     .OrderBy(d => d.desiredSortPosition)
-                    .Select(d => d.cachedName + "|" + CleanName(Language.GetString(d.displayNameToken)))
+                    .Select(d => d.cachedName + "|" + CleanName(SkyrimLanguage.Text(d.displayNameToken)))
                     .ToList();
                 string folder = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SkyrimRoR2");
                 System.IO.Directory.CreateDirectory(folder);

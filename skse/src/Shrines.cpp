@@ -1,4 +1,5 @@
 #include "Shrines.h"
+#include "Lang.h"
 #include "ThirdPerson.h"
 
 #include "Loot.h"
@@ -329,28 +330,28 @@ namespace skyrimror2::Shrines
 			for (std::size_t i = 0; i < count; ++i) {
 				const std::string& survivor = unlocked[first + i];
 				survivors.push_back(survivor);
-				buttons.push_back(DisplayName(names, survivor) + (survivor == current ? " (actuel)" : ""));
+				buttons.push_back(DisplayName(names, survivor) + (survivor == current ? Lang::T(" (actuel)") : ""));
 			}
 			const bool hasMore = pages > 1;
 			if (hasMore) {
-				buttons.push_back("Page suivante");
+				buttons.push_back(Lang::T("Page suivante"));
 			}
-			buttons.push_back("Annuler");
+			buttons.push_back(Lang::T("Annuler"));
 
 			std::string body = a_header;
 			if (!body.empty()) {
 				body += "\n\n";
 			}
-			body += std::format("Choisis ton survivant ({} debloque{})", unlocked.size(), unlocked.size() > 1 ? "s" : "");
+			body += unlocked.size() > 1 ? Lang::F("Choisis ton survivant ({} debloques)", unlocked.size()) : Lang::T("Choisis ton survivant (1 debloque)");
 			if (hasMore) {
-				body += std::format(" - page {}/{}", page + 1, pages);
+				body += Lang::F(" - page {}/{}", page + 1, pages);
 			}
 
 			ShowBox(body, buttons, [survivors, hasMore, page, names](std::uint32_t a_index) {
 				if (a_index < survivors.size()) {
 					const std::string& chosen = survivors[a_index];
 					Select(chosen);
-					Show("Survivant : " + DisplayName(names, chosen));
+					Show(Lang::T("Survivant : ") + DisplayName(names, chosen));
 				} else if (hasMore && a_index == survivors.size()) {
 					SKSE::GetTaskInterface()->AddTask([page]() { OpenChoice(page + 1, {}); });
 				}
@@ -404,12 +405,25 @@ namespace skyrimror2::Shrines
 		}
 
 		// L'autel lie a ce nom d'objet (vide si ce n'est pas un autel connu).
-		std::string SurvivorForShrine(const std::string& a_name)
+		// 0.74 : le dieu d'un autel, quelle que soit la langue de Skyrim : son nom latin ("Autel d'Akatosh"), son nom
+		// traduit (fichier de langue, "god:akatosh = Акатош"), ou le chemin du modele de l'autel.
+		bool ShrineIsOf(const std::string& a_name, const std::string& a_model, const std::string& a_god)
+		{
+			if (a_name.find(a_god) != std::string::npos || a_model.find(a_god) != std::string::npos) {
+				return true;
+			}
+			const std::string key = "god:" + a_god;
+			const std::string local = Lower(Lang::T(key));
+			return local != key && !local.empty() && a_name.find(local) != std::string::npos;
+		}
+
+		std::string SurvivorForShrine(const std::string& a_name, const std::string& a_model)
 		{
 			const std::string name = Lower(a_name);
+			const std::string model = Lower(a_model);
 			std::scoped_lock  lock(g_lock);
 			for (const auto& link : g_links) {
-				if (name.find(link.god) != std::string::npos) {
+				if (ShrineIsOf(name, model, link.god)) {
 					return link.survivor;
 				}
 			}
@@ -435,7 +449,9 @@ namespace skyrimror2::Shrines
 				}
 				const char* rawName = base->GetName();
 				const std::string shrineName = rawName ? rawName : "";
-				const std::string survivor = SurvivorForShrine(shrineName);
+				auto*             shrineModel = base->As<RE::TESModel>();
+				const std::string modelPath = shrineModel && shrineModel->GetModel() ? shrineModel->GetModel() : "";
+				const std::string survivor = SurvivorForShrine(shrineName, modelPath);
 				if (survivor.empty()) {
 					return RE::BSEventNotifyControl::kContinue;
 				}
@@ -444,13 +460,14 @@ namespace skyrimror2::Shrines
 				logger::info("Autels : {} active (survivant {}{})", shrineName, survivor, isNew ? ", nouveau" : "");
 				// Bassins de purification : Arkay retire les objets du vide, Stendarr les objets lunaires.
 				const std::string lower = Lower(shrineName);
-				const int         purify = lower.find("arkay") != std::string::npos ? 1 : (lower.find("stendarr") != std::string::npos ? 2 : 0);
+				const std::string lowerModel = Lower(modelPath);
+				const int         purify = ShrineIsOf(lower, lowerModel, "arkay") ? 1 : (ShrineIsOf(lower, lowerModel, "stendarr") ? 2 : 0);
 				SKSE::GetTaskInterface()->AddTask([shrineName, survivor, isNew, purify]() {
 					const auto names = ReadDisplayNames();
 					if (Items::SleepToSwitch()) {
 						// 0.61 : l'autel debloque seulement ; on change de survivant en dormant.
 						if (isNew) {
-							Show(std::format("{} t'accorde un nouveau survivant : {} ! (change de survivant en dormant)", shrineName,
+							Show(Lang::F("{} t'accorde un nouveau survivant : {} ! (change de survivant en dormant)", shrineName,
 								DisplayName(names, survivor)));
 						}
 						if (purify != 0) {
@@ -459,7 +476,7 @@ namespace skyrimror2::Shrines
 						return;
 					}
 					const std::string header = isNew ?
-					                               std::format("{} t'accorde un nouveau survivant : {} !", shrineName, DisplayName(names, survivor)) :
+					                               Lang::F("{} t'accorde un nouveau survivant : {} !", shrineName, DisplayName(names, survivor)) :
 					                               shrineName;
 					OpenChoice(0, header);
 				});
@@ -610,7 +627,8 @@ namespace skyrimror2::Shrines
 		if (!unlocked.empty()) {
 			const std::size_t count = unlocked.size();
 			SKSE::GetTaskInterface()->AddTask([count]() {
-				Show(std::format("{} survivant{} debloque{} par tes quetes daedriques deja terminees.", count, count > 1 ? "s" : "", count > 1 ? "s" : ""));
+				Show(count > 1 ? Lang::F("{} survivants debloques par tes quetes daedriques deja terminees.", count) :
+				                 Lang::T("1 survivant debloque par tes quetes daedriques deja terminees."));
 			});
 		}
 	}
@@ -630,9 +648,11 @@ namespace skyrimror2::Shrines
 		SKSE::GetTaskInterface()->AddTask([unlocked]() {
 			const auto names = ReadDisplayNames();
 			for (const auto& [quest, survivor] : unlocked) {
-				Show(std::format("{} : nouveau survivant debloque, {} !", quest, DisplayName(names, survivor)));
+				Show(Lang::F("{} : nouveau survivant debloque, {} !", quest, DisplayName(names, survivor)));
 			}
-			Show(Items::SleepToSwitch() ? "Change de survivant en dormant." : "Change de survivant avec F8 / F7, ou a un autel des Divins.");
+			Show(Items::SleepToSwitch() ? Lang::T("Change de survivant en dormant.") :
+			                              Lang::F("Change de survivant avec {} / {}, ou a un autel des Divins.", Config::Get().KeyName(Action::kNextSurvivor),
+			                                  Config::Get().KeyName(Action::kPreviousSurvivor)));
 		});
 	}
 
@@ -650,7 +670,7 @@ namespace skyrimror2::Shrines
 	{
 		// 0.61 : on change de survivant en dormant (sauf avec la triche ToucheTousLesSurvivants).
 		if (Items::SleepToSwitch() && !g_keysUseAll) {
-			SKSE::GetTaskInterface()->AddTask([]() { Show("Change de survivant en dormant (dans un lit)"); });
+			SKSE::GetTaskInterface()->AddTask([]() { Show(Lang::T("Change de survivant en dormant (dans un lit)")); });
 			return;
 		}
 		// Triche (ToucheTousLesSurvivants) : tous les survivants du jeu (liste ecrite par RoR2), sinon les debloques.
@@ -680,7 +700,7 @@ namespace skyrimror2::Shrines
 			next = list[static_cast<std::size_t>(index)];
 		}
 		Select(next);
-		SKSE::GetTaskInterface()->AddTask([next]() { Show("Survivant : " + DisplayName(ReadDisplayNames(), next)); });
+		SKSE::GetTaskInterface()->AddTask([next]() { Show(Lang::T("Survivant : ") + DisplayName(ReadDisplayNames(), next)); });
 	}
 
 	void ShowMessageBox(const std::string& a_body, const std::vector<std::string>& a_buttons, std::function<void(std::uint32_t)> a_onChoice)

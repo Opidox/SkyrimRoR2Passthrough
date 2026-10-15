@@ -246,7 +246,7 @@ namespace SkyrimRoR2
                 if (pool.Count == 0 || _giveItem == null) { _log.LogWarning("Objets : aucun objet disponible pour le rang " + tier); return; }
                 ItemDef def = pool[UnityEngine.Random.Range(0, pool.Count)];
                 _giveItem.Invoke(inventory, new object[] { def.itemIndex, count });
-                name = Language.GetString(def.nameToken);
+                name = SkyrimLanguage.Text(def.nameToken);
                 if (count > 1) name += " x" + count;
             }
             _log.LogInfo("Objets : donne " + name + " (rang " + tier + ")");
@@ -364,7 +364,7 @@ namespace SkyrimRoR2
                 EquipmentIndex index = EquipmentCatalog.FindEquipmentIndex(name ?? "");
                 EquipmentDef def = index != EquipmentIndex.None ? EquipmentCatalog.GetEquipmentDef(index) : null;
                 tier = 6;
-                name = (def != null ? Language.GetString(def.nameToken) : name) + " (equipement, dans ton sac)";
+                name = "{} (equipement, dans ton sac)|" + (def != null ? SkyrimLanguage.Text(def.nameToken) : name);  // 0.74 : traduit par Skyrim
             }
             IntPtr note = bridge.ZonePointer(BridgeInfo.PickupOffset);
             if (note == IntPtr.Zero) return;

@@ -47,12 +47,11 @@ namespace SkyrimRoR2
         {
             _log = log;
             _enabled = config.Bind("2 - Jeu", "ColleAuSol", true,
-                "Le survivant reste colle au sol sur les petits reliefs de Skyrim (cailloux, paves...) au lieu de decoller. " +
-                "Les sauts, les competences et les projections ne sont pas touches.");
+                "The survivor sticks to the ground on small Skyrim bumps (pebbles, cobblestones...) instead of taking off. Jumps, skills and knockbacks are not affected.");
             _maxGap = config.Bind("2 - Jeu", "ColleAuSolDistance", 0.5f,
-                "Distance (m) jusqu'au sol en dessous de laquelle un survivant qui decolle tout seul est recolle au sol.");
+                "Distance (m) to the ground under which a survivor that takes off on its own is put back on the ground.");
             _maxRise = config.Bind("2 - Jeu", "ColleAuSolElanMax", 6f,
-                "Elan vers le haut (m/s) au-dela duquel on considere que c'est voulu (saut, competence) : pas de recollage.");
+                "Upward speed (m/s) above which the movement is considered intended (jump, skill): no snapping.");
         }
 
         // Appelé à chaque pas de physique. active : le relief de Skyrim est recopié et Skyrim pilote le survivant.

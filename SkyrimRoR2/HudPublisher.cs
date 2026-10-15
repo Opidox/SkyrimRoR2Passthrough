@@ -153,7 +153,7 @@ namespace SkyrimRoR2
 
             // Le portrait et le nom du survivant.
             WriteText(IntPtr.Add(hud, BridgeInfo.HudPortraitOffset), _icons.RequestTexture(body.portraitIcon));
-            WriteUtf8(IntPtr.Add(hud, BridgeInfo.HudNameOffset), Language.GetString(body.baseNameToken));
+            WriteUtf8(IntPtr.Add(hud, BridgeInfo.HudNameOffset), SkyrimLanguage.Text(body.baseNameToken));
 
             // La jauge propre au survivant (recharge du Railgunner, corruption du Démon du vide, Chercheuse).
             WriteSpecial(IntPtr.Add(hud, BridgeInfo.HudSpecialOffset), body);
@@ -238,8 +238,8 @@ namespace SkyrimRoR2
                 if (equipment != null)
                 {
                     list.Append(IconKey(equipment, equipment.pickupIconSprite)).Append('\t')
-                        .Append(Clean(Language.GetString(equipment.nameToken))).Append("\t0\t")
-                        .Append(Clean(Language.GetString(equipment.pickupToken))).Append('\n');
+                        .Append(Clean(SkyrimLanguage.Text(equipment.nameToken))).Append("\t0\t")
+                        .Append(Clean(SkyrimLanguage.Text(equipment.pickupToken))).Append('\n');
                 }
                 List<ItemIndex> order = inventory.itemAcquisitionOrder;
                 for (int i = 0; order != null && i < order.Count; i++)
@@ -250,8 +250,8 @@ namespace SkyrimRoR2
                     if (count <= 0) continue;
                     // Les versions récentes de RoR2 ne gardent plus l'icône directement : elle est chargée à part.
                     string icon = IconKey(def, def.pickupIconSprite);
-                    list.Append(icon).Append('\t').Append(Clean(Language.GetString(def.nameToken))).Append('\t').Append(count).Append('\t')
-                        .Append(Clean(Language.GetString(def.pickupToken))).Append('\n');
+                    list.Append(icon).Append('\t').Append(Clean(SkyrimLanguage.Text(def.nameToken))).Append('\t').Append(count).Append('\t')
+                        .Append(Clean(SkyrimLanguage.Text(def.pickupToken))).Append('\n');
                     if (written >= BridgeInfo.HudMaxItems) continue;
 
                     IntPtr entry = IntPtr.Add(hud, BridgeInfo.HudHeaderSize + BridgeInfo.HudSlots * BridgeInfo.HudSlotSize + written * BridgeInfo.HudItemSize);
@@ -490,7 +490,7 @@ namespace SkyrimRoR2
                         kind = 1;
                         value = Mathf.Clamp01(corruption / max);
                         color = corrupted ? 0xE0303AFFu : 0x9B5CF0FFu;
-                        label = corrupted ? "CORROMPU" : $"Corruption {Mathf.RoundToInt(corruption)} %";
+                        label = corrupted ? "CORROMPU" : $"Corruption {{}} %|{Mathf.RoundToInt(corruption)}";  // 0.74 : traduit par Skyrim
                         LogOnce("VoidSurvivor", controller);
                     }
                 }

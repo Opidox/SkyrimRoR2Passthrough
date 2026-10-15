@@ -14,7 +14,7 @@ namespace SkyrimRoR2
     {
         public const string PluginGUID = "opidox.skyrimror2";
         public const string PluginName = "SkyrimRoR2";
-        public const string PluginVersion = "0.73.9";
+        public const string PluginVersion = "0.74.0";
 
         // Au-delà de ce délai sans nouvelles de Skyrim, on rend la main au clavier de RoR2.
         private const float InputTimeoutSeconds = 0.5f;
@@ -133,6 +133,7 @@ namespace SkyrimRoR2
             Camera.onPreCull += PlaceRoR2Camera;
             Instance = this;
             Logger.LogInfo("Bonjour depuis SkyrimRoR2 ! Le mod est bien charge.");
+            SkyrimLanguage.Init(Logger);  // 0.74 : les noms de RoR2 dans la langue de Skyrim
             ScreenKeeper.Save(Logger);  // taille d'écran du RoR2 normal, remise à la fermeture
 
             // RoR2 doit continuer à tourner quand c'est la fenêtre de Skyrim qui est active.
@@ -160,37 +161,32 @@ namespace SkyrimRoR2
             _ghosts = new GhostManager(Logger, Config);
 
             _blockRoR2Monsters = ConfigMove.Bind(Config, "Combat", "2 - Jeu", "DesactiverMonstresRoR2", true,
-                "Empeche les monstres normaux de RoR2 d'apparaitre : les ennemis viennent de Skyrim.");
+                "Prevents normal RoR2 monsters from spawning: enemies come from Skyrim.");
             _monsterBlocker = new MonsterBlocker(Logger);
 
             _neutralizeMap = ConfigMove.Bind(Config, "Monde", "2 - Jeu", "NeutraliserCarteRoR2", true,
-                "Rend la carte de RoR2 intangible et pose un sol plat invisible : c'est Skyrim qui fournit le monde.");
+                "Makes the RoR2 map intangible and adds an invisible flat floor: Skyrim provides the world.");
             _mapNeutralizer = new MapNeutralizer(Logger);
 
             _mirrorTerrain = ConfigMove.Bind(Config, "Monde", "2 - Jeu", "ReliefSkyrim", true,
-                "Recopie le relief de Skyrim autour du joueur (surface invisible sous le survivant) : pentes, rochers et murs " +
-                "existent aussi pour les competences. Sinon, le survivant marche sur un petit plateau plat.");
+                "Copies Skyrim's terrain around the player (invisible surface under the survivor): slopes, rocks and walls also exist for skills. Otherwise the survivor walks on a small flat platform.");
             _showTerrain = ConfigMove.Bind(Config, "Verification", "9 - Verification", "AfficherRelief", true,
-                "Affiche le relief recopie de Skyrim dans RoR2 (sols gris clair, murs gris fonce, transparents), pour verifier " +
-                "qu'il colle au monde de Skyrim. Change en direct. N'apparait pas sur les mains filmees pour Skyrim.");
+                "Shows the terrain copied from Skyrim inside RoR2 (light grey floors, dark grey walls, see-through), to check that it matches Skyrim's world. Changes live. Does not show on the hands filmed for Skyrim.");
             _terrain = new TerrainMirror(Logger);
             _groundSnap = new GroundSnap(Logger, Config);
             _skillSource = new SkillSource(Logger, _bridge, GetLocalBody);
             _nav = new NavMirror(Logger);
             _airControl = ConfigMove.Bind(Config, "Mouvement", "2 - Jeu", "ControleEnLair", 0.7f,
-                "Controle de la direction en l'air (sauts, grappin, chutes) avec les touches de deplacement. " +
-                "0.25 = comme RoR2 d'origine, 1 = autant qu'au sol. 0 = ne pas toucher.");
+                "Air control (jumps, grapple, falls) with the movement keys. 0.25 = original RoR2, 1 = as much as on the ground. 0 = leave unchanged.");
 
             _coop = new Coop(Logger, Config);
             _coopOffset = _coop.OffsetFor;
             _autoRun = new AutoRun(Logger);
             _autoRun.SurvivorOverride = ConfigMove.Bind(Config, "Lancement", "1 - Lancement", "Survivant", "",
-                "Survivant joue (vide = celui de SkyrimRoR2.ini). Nom anglais ou francais : Commando, Huntress, Bandit, Toolbot (MUL-T), " +
-                "Engi, Mage (Artificer), Merc, Treebot (REX), Loader, Croco (Acrid), Captain, Railgunner, VoidSurvivor, Seeker, FalseSon, Chef... " +
-                "Change en pleine partie si on modifie ce reglage pendant le jeu.");
+                "Survivor played (empty = the one from SkyrimRoR2.ini). English or French name: Commando, Huntress, Bandit, Toolbot (MUL-T), Engi, Mage (Artificer), Merc, Treebot (REX), Loader, Croco (Acrid), Captain, Railgunner, VoidSurvivor, Seeker, FalseSon, Chef... Changes mid-run if you edit this setting while playing.");
             _autoRun.SurvivorOverride.SettingChanged += (sender, args) => _pendingSurvivorChange = true;
             _quitWithSkyrim = ConfigMove.Bind(Config, "Lancement", "1 - Lancement", "QuitterAvecSkyrim", true,
-                "Ferme RoR2 tout seul 10 secondes apres la fermeture de Skyrim (sinon sa fenetre cachee reapparait).");
+                "Closes RoR2 by itself 10 seconds after Skyrim closes (otherwise its hidden window shows up again).");
             _hud = new HudPublisher(Logger);
             _loot = new LootReceiver(Logger);
             _inventory = new InventorySync(Logger);

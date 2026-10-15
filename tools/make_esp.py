@@ -38,13 +38,13 @@ def spell(slot, variant):
     form_id = (MASTER_INDEX << 24) | local
     if slot < 4:
         editor_id = 'SkyrimRoR2_C%d_V%d' % (slot + 1, variant + 1)
-        name = 'RoR2 competence %d variante %d' % (slot + 1, variant + 1)
+        name = 'RoR2 skill %d variant %d' % (slot + 1, variant + 1)
     elif slot == 4:
         editor_id = 'SkyrimRoR2_Skin%d' % (variant + 1)
         name = 'RoR2 skin %d' % (variant + 1)
     else:
         editor_id = 'SkyrimRoR2_X%d_V%d' % (slot + 1, variant + 1)
-        name = 'RoR2 case %d variante %d' % (slot + 1, variant + 1)
+        name = 'RoR2 slot %d variant %d' % (slot + 1, variant + 1)
     spit = struct.pack(
         '<IIIfIIffI',
         0,                       # cout
@@ -61,7 +61,7 @@ def spell(slot, variant):
         sub('OBND', b'\x00' * 12) +
         sub('FULL', zstring(name)) +
         sub('ETYP', struct.pack('<I', VOICE_EQUIP)) +
-        sub('DESC', zstring('Change la variante de cette competence du survivant RoR2.')) +
+        sub('DESC', zstring('Switches the variant of this RoR2 survivor skill.')) +
         sub('SPIT', spit) +
         sub('EFID', struct.pack('<I', RESTORE_HEALTH)) +
         sub('EFIT', struct.pack('<fII', 0.0, 0, 0))
@@ -81,7 +81,7 @@ def misc(index):
     payload = (
         sub('EDID', zstring('SkyrimRoR2_Objet%03d' % index)) +
         sub('OBND', struct.pack('<hhhhhh', -4, -4, -2, 4, 4, 2)) +
-        sub('FULL', zstring('Objet RoR2 %d' % index)) +
+        sub('FULL', zstring('RoR2 item %d' % index)) +
         sub('DATA', struct.pack('<If', 0, 0.0))  # valeur 0, poids 0
     )
     return record('MISC', form_id, payload)
@@ -196,8 +196,8 @@ def journal():
     payload = (
         sub('EDID', zstring('SkyrimRoR2_Journal')) +
         sub('OBND', struct.pack('<hhhhhh', -8, -11, -2, 8, 11, 2)) +
-        sub('FULL', zstring('Journal RoR2')) +
-        sub('DESC', zstring('<p align="center">Journal RoR2</p><p>Referme ce livre : la liste de tes objets RoR2 trouves s\'ouvre.</p>')) +
+        sub('FULL', zstring('RoR2 Logbook')) +
+        sub('DESC', zstring('<p align="center">RoR2 Logbook</p><p>Close this book: the list of the RoR2 items you found opens.</p>')) +
         sub('DATA', struct.pack('<BBHiIf', 0, 0, 0, -1, 0, 0.0))  # livre, n'apprend rien, valeur 0, poids 0
     )
     return record('BOOK', form_id, payload)
@@ -216,7 +216,7 @@ def amulet(index):
     payload = (
         sub('EDID', zstring('SkyrimRoR2_Equipement%03d' % index)) +
         sub('OBND', struct.pack('<hhhhhh', -4, -4, -1, 4, 4, 1)) +
-        sub('FULL', zstring('Equipement RoR2 %d' % index)) +
+        sub('FULL', zstring('RoR2 equipment %d' % index)) +
         sub('BOD2', struct.pack('<II', SLOT_55, 2)) +         # emplacement 55, vetement
         sub('RNAM', struct.pack('<I', 0x00000019)) +          # race par defaut
         sub('DATA', struct.pack('<if', 0, 0.0)) +             # valeur 0, poids 0
@@ -243,8 +243,8 @@ def main():
 
     header = (
         sub('HEDR', struct.pack('<fII', 1.71, len(effects) + len(spells) + len(items) + len(solids) + len(books) + len(amulets) + 1, FIRST_EQUIP_ID + EQUIP_SLOTS)) +
-        sub('CNAM', zstring('Opidox')) +
-        sub('SNAM', zstring('Pouvoirs des variantes de competences pour SkyrimRoR2')) +
+        sub('CNAM', zstring('Opidox & Claude')) +
+        sub('SNAM', zstring('Skill variant powers and RoR2 items for SkyrimRoR2')) +
         sub('MAST', zstring('Skyrim.esm')) +
         sub('DATA', struct.pack('<Q', 0))
     )

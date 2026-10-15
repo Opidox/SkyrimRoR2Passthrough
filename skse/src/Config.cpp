@@ -1,4 +1,5 @@
 #include "Config.h"
+#include "Lang.h"
 
 namespace skyrimror2
 {
@@ -13,10 +14,10 @@ namespace skyrimror2
 
 		// Nom dans le fichier .ini, et touche par defaut si le reglage manque.
 		constexpr std::array<Entry, static_cast<std::size_t>(Action::kCount)> kEntries{ {
-			{ Action::kForward, "Avancer", "Z" },
-			{ Action::kBack, "Reculer", "S" },
-			{ Action::kLeft, "Gauche", "Q" },
-			{ Action::kRight, "Droite", "D" },
+			{ Action::kForward, "Avancer", "Auto" },  // 0.74 : "Auto" = la touche a la place du W/Z de ce clavier
+			{ Action::kBack, "Reculer", "Auto" },
+			{ Action::kLeft, "Gauche", "Auto" },
+			{ Action::kRight, "Droite", "Auto" },
 			{ Action::kJump, "Saut", "Espace" },
 			{ Action::kSprint, "Sprint", "AltGauche" },
 			{ Action::kSkill1, "Competence1", "ClicGauche" },
@@ -48,7 +49,7 @@ namespace skyrimror2
 		int ParseKey(const std::string& a_name)
 		{
 			const std::string name = Normalize(a_name);
-			if (name.empty() || name == "AUCUNE") {
+			if (name.empty() || name == "AUCUNE" || name == "NONE") {
 				return 0;
 			}
 
@@ -68,6 +69,30 @@ namespace skyrimror2
 				{ "CLICMILIEU", VK_MBUTTON },
 				{ "SOURIS4", VK_XBUTTON1 },
 				{ "SOURIS5", VK_XBUTTON2 },
+				// 0.74 : les noms anglais
+				{ "SPACE", VK_SPACE },
+				{ "ENTER", VK_RETURN },
+				{ "BACKSPACE", VK_BACK },
+				{ "LEFTCTRL", VK_LCONTROL },
+				{ "LCTRL", VK_LCONTROL },
+				{ "RIGHTCTRL", VK_RCONTROL },
+				{ "RCTRL", VK_RCONTROL },
+				{ "LEFTSHIFT", VK_LSHIFT },
+				{ "LSHIFT", VK_LSHIFT },
+				{ "RIGHTSHIFT", VK_RSHIFT },
+				{ "RSHIFT", VK_RSHIFT },
+				{ "LEFTALT", VK_LMENU },
+				{ "LALT", VK_LMENU },
+				{ "RIGHTALT", VK_RMENU },
+				{ "RALT", VK_RMENU },
+				{ "LEFTCLICK", VK_LBUTTON },
+				{ "MOUSE1", VK_LBUTTON },
+				{ "RIGHTCLICK", VK_RBUTTON },
+				{ "MOUSE2", VK_RBUTTON },
+				{ "MIDDLECLICK", VK_MBUTTON },
+				{ "MOUSE3", VK_MBUTTON },
+				{ "MOUSE4", VK_XBUTTON1 },
+				{ "MOUSE5", VK_XBUTTON2 },
 			};
 			if (auto it = kNamed.find(name); it != kNamed.end()) {
 				return it->second;
@@ -91,6 +116,32 @@ namespace skyrimror2
 			}
 
 			return -1;
+		}
+
+		// 0.74 : "Auto" pour les deplacements : la touche a la meme PLACE que W A S D sur un clavier QWERTY
+		// (Z Q S D en AZERTY...), quelle que soit la langue du clavier. a_shown : le nom a afficher.
+		int ResolveKey(Action a_action, const std::string& a_text, std::string& a_shown)
+		{
+			if (Normalize(a_text) != "AUTO") {
+				return ParseKey(a_text);
+			}
+			UINT scan = 0;
+			switch (a_action) {
+			case Action::kForward: scan = 0x11; break;
+			case Action::kBack: scan = 0x1F; break;
+			case Action::kLeft: scan = 0x1E; break;
+			case Action::kRight: scan = 0x20; break;
+			default: return -1;
+			}
+			const int key = static_cast<int>(::MapVirtualKeyW(scan, MAPVK_VSC_TO_VK));
+			if (key <= 0) {
+				return -1;
+			}
+			const UINT letter = ::MapVirtualKeyW(static_cast<UINT>(key), MAPVK_VK_TO_CHAR) & 0x7FFF;
+			if (letter >= 32 && letter < 127) {
+				a_shown = std::string(1, static_cast<char>(letter));
+			}
+			return key;
 		}
 
 		// Lit un multiplicateur (1.0 par defaut, entre 0 et 100). Accepte 0,8 comme 0.8.
@@ -148,7 +199,8 @@ namespace skyrimror2
 	Config::Config()
 	{
 		for (const auto& entry : kEntries) {
-			keys_[static_cast<std::size_t>(entry.action)] = ParseKey(entry.defaultKey);
+			std::string shown;
+			keys_[static_cast<std::size_t>(entry.action)] = ResolveKey(entry.action, entry.defaultKey, shown);
 		}
 	}
 
@@ -165,15 +217,17 @@ namespace skyrimror2
 			::GetPrivateProfileStringA("Touches", entry.iniName, entry.defaultKey, buffer,
 				static_cast<DWORD>(sizeof(buffer)), path.string().c_str());
 
-			int key = ParseKey(buffer);
+			std::string shown = buffer;
+			int         key = ResolveKey(entry.action, buffer, shown);
 			if (key < 0) {
 				logger::warn("Touche inconnue pour {} : \"{}\", on garde {}", entry.iniName, buffer, entry.defaultKey);
-				key = ParseKey(entry.defaultKey);
+				shown = entry.defaultKey;
+				key = ResolveKey(entry.action, entry.defaultKey, shown);
 			}
 			keys_[static_cast<std::size_t>(entry.action)] = key;
 			{
 				std::scoped_lock lock(textLock_);
-				keyNames_[static_cast<std::size_t>(entry.action)] = buffer;
+				keyNames_[static_cast<std::size_t>(entry.action)] = shown;
 			}
 			logger::info("Touche {} = {} (code {})", entry.iniName, buffer, key);
 		}

@@ -101,23 +101,23 @@ namespace SkyrimRoR2
             string section = "Mains - " + name;
             profile = new Profile
             {
-                Forward = _config.Bind(section, "Avance", _back.Value, "Avance la camera devant le visage (metres). Negatif = recule (la tete est cachee, on voit les bras de derriere)."),
-                Up = _config.Bind(section, "Hauteur3D", _up.Value, "Monte (+) ou descend (-) la camera (metres)."),
-                Right = _config.Bind(section, "Decalage", _right.Value, "Decale la camera a droite (+) ou a gauche (-) (metres)."),
-                Zoom = _config.Bind(section, "Zoom", _zoom.Value, "Taille des bras a l'ecran (plus petit = bras plus petits)."),
-                ViewDown = _config.Bind(section, "VueBas", _angleDown.Value, "Jusqu'ou la camera voit vers le bas (degres)."),
-                ViewUp = _config.Bind(section, "VueHaut", _angleUp.Value, "Jusqu'ou la camera voit vers le haut (degres). Plus grand = bras plus bas."),
-                Turn = _config.Bind(section, "Rotation", 0f, "Tourne la camera a droite (+) ou a gauche (-) (degres), pour les survivants qui tiennent leur arme de cote."),
-                HideBody = _config.Bind(section, "CacherCorps", true, "Cache tout le corps sauf les bras (et ce qu'ils tiennent). Sinon seule la tete est cachee."),
-                Tilt = _config.Bind(section, "Inclinaison", 0f, "Leve (+) ou baisse (-) le regard de la camera (degres). Lever le regard fait viser l'arme plus droit devant."),
-                FollowModel = _config.Bind(section, "SuivreModele", false, "La camera tourne avec le corps du survivant (et non avec la visee) : on ne peut plus voir derriere lui quand il tourne."),
-                WeaponSize = _config.Bind(section, "TailleArme", 1f, "Grossit (>1) ou reduit (<1) l'arme tenue en main (1 = normal)."),
-                WeaponTilt = _config.Bind(section, "InclinaisonArme", 0f, "Fait pointer l'arme plus bas (+) ou plus haut (-), en degres (seulement a l'image, la visee ne change pas)."),
-                FollowWeapon = _config.Bind(section, "SuivreArme", false, "La camera se place derriere et au-dessus de l'arme (et non a la tete) : pour les survivants dont l'arme est loin de la tete (REX)."),
+                Forward = _config.Bind(section, "Avance", _back.Value, "Moves the camera forward in front of the face (meters). Negative = backwards (the head is hidden, you see the arms from behind)."),
+                Up = _config.Bind(section, "Hauteur3D", _up.Value, "Moves the camera up (+) or down (-) (meters)."),
+                Right = _config.Bind(section, "Decalage", _right.Value, "Moves the camera right (+) or left (-) (meters)."),
+                Zoom = _config.Bind(section, "Zoom", _zoom.Value, "Size of the arms on screen (smaller = smaller arms)."),
+                ViewDown = _config.Bind(section, "VueBas", _angleDown.Value, "How far down the camera sees (degrees)."),
+                ViewUp = _config.Bind(section, "VueHaut", _angleUp.Value, "How far up the camera sees (degrees). Bigger = arms lower."),
+                Turn = _config.Bind(section, "Rotation", 0f, "Turns the camera right (+) or left (-) (degrees), for survivors who hold their weapon to the side."),
+                HideBody = _config.Bind(section, "CacherCorps", true, "Hides the whole body except the arms (and what they hold). Otherwise only the head is hidden."),
+                Tilt = _config.Bind(section, "Inclinaison", 0f, "Raises (+) or lowers (-) the camera's gaze (degrees). Raising it makes the weapon point straighter ahead."),
+                FollowModel = _config.Bind(section, "SuivreModele", false, "The camera turns with the survivor's body (not with the aim): you can no longer see behind them when they turn."),
+                WeaponSize = _config.Bind(section, "TailleArme", 1f, "Enlarges (>1) or shrinks (<1) the weapon held in hand (1 = normal)."),
+                WeaponTilt = _config.Bind(section, "InclinaisonArme", 0f, "Points the weapon lower (+) or higher (-), in degrees (picture only, the aim does not change)."),
+                FollowWeapon = _config.Bind(section, "SuivreArme", false, "The camera sits behind and above the weapon (not at the head): for survivors whose weapon is far from the head (REX)."),
             };
 
             // Cadrage préparé : appliqué une seule fois (tes retouches ensuite sont gardées).
-            ConfigEntry<int> version = _config.Bind(section, "VersionCadrage", 0, "Ne pas toucher : sert a appliquer une seule fois les cadrages prepares.");
+            ConfigEntry<int> version = _config.Bind(section, "VersionCadrage", 0, "Do not change: used to apply the prepared framings only once.");
             int needed = PresetRevisions.TryGetValue(name, out int revision) ? Math.Max(PresetVersion, revision) : PresetVersion;
             if (version.Value < needed)
             {
@@ -555,25 +555,25 @@ namespace SkyrimRoR2
         {
             _log = log;
             _config = config;
-            _enabled = config.Bind("Mains", "Activer", true, "Filme les bras et l'arme du survivant pour les afficher en premiere personne dans Skyrim.");
-            _width = config.Bind("Mains", "Largeur", 960, "Largeur de l'image en pixels (plus grand = plus net, mais plus lourd). 1280 maximum.");
-            _height = config.Bind("Mains", "Hauteur", 540, "Hauteur de l'image en pixels. 720 maximum.");
-            _fps = config.Bind("Mains", "ImagesParSeconde", 60, "Nombre d'images par seconde envoyees a Skyrim (120 maximum).");
+            _enabled = config.Bind("Mains", "Activer", true, "Films the survivor's arms and weapon to show them in first person in Skyrim.");
+            _width = config.Bind("Mains", "Largeur", 960, "Picture width in pixels (bigger = sharper, but heavier). 1280 maximum.");
+            _height = config.Bind("Mains", "Hauteur", 540, "Picture height in pixels. 720 maximum.");
+            _fps = config.Bind("Mains", "ImagesParSeconde", 60, "Frames per second sent to Skyrim (120 maximum).");
             // Les bras sont SOUS les yeux (environ 40 degres plus bas) : une camera normale regardant droit devant
             // ne les voit pas. L'image va donc de "AngleBas" sous l'horizon (bas de l'ecran) a "AngleHaut" au-dessus.
-            _angleDown = config.Bind("Mains", "VueBas", 52f, "Jusqu'ou la camera voit vers le bas, en degres sous l'horizon (bas de l'ecran). Plus grand = bras plus hauts et plus petits.");
-            _angleUp = config.Bind("Mains", "VueHaut", 33f, "Jusqu'ou la camera voit vers le haut, en degres au-dessus de l'horizon (haut de l'ecran). Plus grand = bras plus bas, et rien n'est coupe en regardant en l'air.");
-            _back = config.Bind("Mains", "Avance", 0.25f, "Valeur de depart pour les nouveaux survivants (chacun a ensuite sa section 'Mains - <survivant>'). Avance la camera devant le visage (metres).");
-            _up = config.Bind("Mains", "Hauteur3D", 0.0f, "Monte (+) ou descend (-) la camera (metres).");
-            _right = config.Bind("Mains", "Decalage", 0.0f, "Decale la camera a droite (+) ou a gauche (-) (metres).");
-            _nearClip = config.Bind("Mains", "DistanceMinimale", 0.05f, "Tout ce qui est plus pres de la camera que ca (en metres) est coupe.");
-            _hideHead = config.Bind("Mains", "CacherTete", true, "Cache la tete du survivant (pour ne jamais la voir de l'interieur en regardant vers le bas).");
-            _zoom = config.Bind("Mains", "Zoom", 0.75f, "Taille des bras a l'ecran : 1 = normal, plus petit = bras plus petits (vue plus large), plus grand = bras plus gros.");
-            _lightIntensity = config.Bind("Mains", "Lumiere", 1.2f, "Force de la lumiere qui eclaire les bras (0 a 5).");
-            _layerSetting = config.Bind("Mains", "Calque", -1, "Calque Unity utilise pour filmer (-1 = automatique). A changer seulement si d'autres choses apparaissent sur l'image.");
-            _flip = config.Bind("Mains", "RetournerImage", true, "Retourne l'image verticalement (a changer si les mains apparaissent a l'envers).");
+            _angleDown = config.Bind("Mains", "VueBas", 52f, "How far down the camera sees, in degrees below the horizon (bottom of the screen). Bigger = arms higher and smaller.");
+            _angleUp = config.Bind("Mains", "VueHaut", 33f, "How far up the camera sees, in degrees above the horizon (top of the screen). Bigger = arms lower, and nothing is cut off when looking up.");
+            _back = config.Bind("Mains", "Avance", 0.25f, "Starting value for new survivors (each then has its own 'Mains - <survivor>' section). Moves the camera forward in front of the face (meters).");
+            _up = config.Bind("Mains", "Hauteur3D", 0.0f, "Moves the camera up (+) or down (-) (meters).");
+            _right = config.Bind("Mains", "Decalage", 0.0f, "Moves the camera right (+) or left (-) (meters).");
+            _nearClip = config.Bind("Mains", "DistanceMinimale", 0.05f, "Anything closer to the camera than this (in meters) is cut off.");
+            _hideHead = config.Bind("Mains", "CacherTete", true, "Hides the survivor's head (so you never see it from the inside when looking down).");
+            _zoom = config.Bind("Mains", "Zoom", 0.75f, "Size of the arms on screen: 1 = normal, smaller = smaller arms (wider view), bigger = bigger arms.");
+            _lightIntensity = config.Bind("Mains", "Lumiere", 1.2f, "Strength of the light on the arms (0 to 5).");
+            _layerSetting = config.Bind("Mains", "Calque", -1, "Unity layer used for filming (-1 = automatic). Only change it if other things show up in the picture.");
+            _flip = config.Bind("Mains", "RetournerImage", true, "Flips the picture vertically (change it if the hands show upside down).");
             // Les anciens réglages gardaient 20 images par seconde : on passe une fois à 60.
-            ConfigEntry<int> settingsVersion = config.Bind("Mains", "VersionReglages", 0, "Ne pas toucher.");
+            ConfigEntry<int> settingsVersion = config.Bind("Mains", "VersionReglages", 0, "Do not change.");
             if (settingsVersion.Value < 1)
             {
                 if (_fps.Value < 60) _fps.Value = 60;

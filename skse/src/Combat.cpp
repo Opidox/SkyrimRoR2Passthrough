@@ -1,4 +1,5 @@
 #include "Combat.h"
+#include "Lang.h"
 
 #include "Allies.h"
 #include "Bridge.h"
@@ -57,6 +58,23 @@ namespace skyrimror2::Combat
 		// d'elite (effets, coups qui brulent, gelent ou foudroient) et le rend plus dur a tuer.
 		std::unordered_map<RE::FormID, int> g_elites;
 		constexpr const char*               kEliteSuffix[4]{ "", " ardent", " glacial", " survolte" };
+		// 0.74 : le nom d'elite traduit ("{} ardent" -> "Blazing {}") ; l'ancien suffixe francais reste reconnu.
+		constexpr const char* kEliteName[4]{ "{}", "{} ardent", "{} glacial", "{} survolte" };
+
+		bool HasEliteName(std::string_view a_name, int a_type)
+		{
+			if (a_name.ends_with(kEliteSuffix[a_type])) {
+				return true;
+			}
+			const std::string pattern = Lang::T(kEliteName[a_type]);
+			const auto        hole = pattern.find("{}");
+			if (hole == std::string::npos) {
+				return false;
+			}
+			const std::string_view before = std::string_view(pattern).substr(0, hole);
+			const std::string_view after = std::string_view(pattern).substr(hole + 2);
+			return a_name.size() > before.size() + after.size() && a_name.starts_with(before) && a_name.ends_with(after);
+		}
 
 		int EliteOf(RE::Actor* a_actor, bool a_skip)
 		{
@@ -71,7 +89,7 @@ namespace skyrimror2::Combat
 			const std::string_view name = shownName ? shownName : "";
 			// Deja elite (partie rechargee) : son nom le dit.
 			for (int type = 1; type <= 3; ++type) {
-				if (name.ends_with(kEliteSuffix[type])) {
+				if (HasEliteName(name, type)) {
 					g_elites[id] = type;
 					return type;
 				}
@@ -82,7 +100,7 @@ namespace skyrimror2::Combat
 			if (std::uniform_real_distribution<float>(0.0f, 100.0f)(random) < chance) {
 				type = std::uniform_int_distribution<int>(1, 3)(random);
 				if (!name.empty()) {
-					a_actor->SetDisplayName(RE::BSFixedString(std::string(name) + kEliteSuffix[type]), true);
+					a_actor->SetDisplayName(RE::BSFixedString(Lang::F(kEliteName[type], std::string(name))), true);
 				}
 				logger::info("Elite : {} {:08X}{}", std::string(name), id, kEliteSuffix[type]);
 			}

@@ -7,8 +7,9 @@ enemies, drones and effects. Skyrim shows it all in its own world: the survivor'
 first-person hands, projectiles, lasers, allies, a RoR2-style HUD, and Skyrim's terrain copied back into
 RoR2 so both games agree on where the ground and the walls are.
 
-> **Status:** playable but experimental (version 0.73.9). Expect bugs and the occasional crash.
-> The code and in-game texts are mostly in French.
+> **Status:** playable but experimental (version 0.74.0). Expect bugs and the occasional crash.
+> In-game texts follow Skyrim's language (English, French, German, Italian, Spanish, Polish, Russian, Japanese,
+> Chinese). The source code comments are in French.
 
 ## How it works
 
@@ -31,7 +32,10 @@ newly converted models become visible in Skyrim from the next launch.
 
 - Skyrim Special Edition / Anniversary Edition with **SKSE** (Mod Organizer 2 recommended)
 - Risk of Rain 2 (with the Seekers of the Storm DLC for the newest survivors) and **r2modman** with **BepInEx**
+- Skyrim **1.6.1170** (the version the mod is built and tested on). Newer versions are untested.
 - Both games running at the same time on the same PC
+- On a fresh install, launch Skyrim **once without mods** first (it creates its settings files), then install SKSE
+  and the mod.
 
 ## Building
 
@@ -53,6 +57,16 @@ newly converted models become visible in Skyrim from the next launch.
 3. The result is `dist\SkyrimRoR2-Skyrim.zip` (DLL, `SkyrimRoR2.ini`, `SkyrimRoR2.esp`), ready to install
    with your mod manager. If the mod is already installed in MO2, it is updated in place and your
    `.ini` settings are kept.
+
+## Languages
+
+The mod reads Skyrim's language (`sLanguage`) and picks `SKSE\Plugins\SkyrimRoR2_Lang\<language>.txt`.
+RoR2 names (items, survivors, skills, skins) are taken from RoR2 in the same language when RoR2 has it.
+To force a language, set `[Langue] Langue = english` (or `french`, `german`...) in `SkyrimRoR2.ini`.
+
+Translations are generated from `tools/lang_data*.py` with `python tools/make_lang.py`, which also checks that
+every text used in the code has a line and that each translation keeps the same `{}` placeholders.
+Corrections are welcome — most non-French/English lines were machine-assisted and never checked by a native speaker.
 
 ## Settings
 

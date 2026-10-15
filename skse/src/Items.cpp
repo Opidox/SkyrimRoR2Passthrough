@@ -1,4 +1,5 @@
 #include "Items.h"
+#include "Lang.h"
 
 #include "Bridge.h"
 #include "Config.h"
@@ -371,7 +372,7 @@ namespace skyrimror2::Items
 				const auto* info = InfoOf(g_slotName[i]);
 				const int   tier = info && info->tier >= 0 && info->tier < kTierCount ? info->tier : kOther;
 				const std::string display = info && !info->display.empty() ? info->display : g_slotName[i];
-				form->SetFullName(std::format("{} [RoR2 {}]", display, TierWord(tier)).c_str());
+				form->SetFullName(Lang::F("{} [RoR2 {}]", display, TierWord(tier)).c_str());
 				if (!g_models[tier].empty()) {
 					static_cast<RE::TESModel*>(form)->SetModel(g_models[tier].c_str());
 				}
@@ -575,8 +576,8 @@ namespace skyrimror2::Items
 					continue;
 				}
 				const auto it = g_eqCatalog.find(g_eqSlotName[i]);
-				const char* kind = it != g_eqCatalog.end() && it->second.aspect ? "aspect" : (it != g_eqCatalog.end() && it->second.lunar ? "equipement lunaire" : "equipement");
-				form->SetFullName(std::format("{} [RoR2 {}]", EquipDisplay(g_eqSlotName[i]), kind).c_str());
+				const std::string kind = Lang::T(it != g_eqCatalog.end() && it->second.aspect ? "aspect" : (it != g_eqCatalog.end() && it->second.lunar ? "equipement lunaire" : "equipement"));
+				form->SetFullName(Lang::F("{} [RoR2 {}]", EquipDisplay(g_eqSlotName[i]), kind).c_str());
 				if (!g_amuletModel.empty()) {
 					form->worldModels[0].SetModel(g_amuletModel.c_str());
 					form->worldModels[1].SetModel(g_amuletModel.c_str());
@@ -801,7 +802,7 @@ namespace skyrimror2::Items
 				g_migrateText.clear();
 				if (moved > 0) {
 					logger::info("Objets Skyrim : {} objet(s) RoR2 de l'ancienne sauvegarde mis dans l'inventaire", moved);
-					Show(std::format("Tes {} objets RoR2 sont maintenant dans ton inventaire (objets divers)", moved));
+					Show(Lang::F("Tes {} objets RoR2 sont maintenant dans ton inventaire (objets divers)", moved));
 				}
 			}
 
@@ -966,8 +967,8 @@ namespace skyrimror2::Items
 					if (!back) {
 						player->AddObjectToContainer(object, nullptr, count, nullptr);
 					}
-					Show(isVoid ? "Les objets du vide ne te quittent pas : purifie-toi a un autel d'Arkay" :
-					              "Les objets lunaires ne te quittent pas : purifie-toi a un autel de Stendarr");
+					Show(isVoid ? Lang::T("Les objets du vide ne te quittent pas : purifie-toi a un autel d'Arkay") :
+					              Lang::T("Les objets lunaires ne te quittent pas : purifie-toi a un autel de Stendarr"));
 				});
 				return RE::BSEventNotifyControl::kContinue;
 			}
@@ -988,15 +989,39 @@ namespace skyrimror2::Items
 				if (base && base->Is(RE::FormType::Furniture)) {
 					g_lastFurniture = ref->GetFormID();
 					g_lastFurnitureName = Lower(base->GetName() ? base->GetName() : "");
+					// 0.74 : ce qui ne depend pas de la langue de Skyrim : le chemin du modele et les mots-cles du meuble.
+					if (auto* model = base->As<RE::TESModel>(); model && model->GetModel()) {
+						g_lastFurnitureName += "|" + Lower(model->GetModel());
+					}
+					if (auto* keywords = base->As<RE::BGSKeywordForm>()) {
+						if (keywords->HasKeywordString("CraftingSmelter")) {
+							g_lastFurnitureName += "|smelter";
+						}
+						if (keywords->HasKeywordString("CraftingCookpot")) {
+							g_lastFurnitureName += "|cookpot";
+						}
+					}
 					g_lastFurnitureTime = Clock::now();
 				} else if (auto* actor = ref->As<RE::Actor>()) {
 					auto*             npc = actor->GetActorBase();
 					const std::string name = Lower(npc && npc->GetName() ? npc->GetName() : "");
-					for (const char* leader : { "ri'saad", "ma'dran", "ahkari", "risaad", "madran" }) {
-						if (name.find(leader) != std::string::npos) {
-							g_lastTalked = actor->GetFormID();
-							g_lastTalkedTime = Clock::now();
+					bool              leader = false;
+					for (const char* known : { "ri'saad", "ma'dran", "ahkari", "risaad", "madran" }) {
+						leader = leader || name.find(known) != std::string::npos;
+					}
+					// 0.74 : dans les autres langues (russe, japonais...), un marchand khajiit (les chefs de caravane).
+					if (!leader && npc) {
+						auto*             race = npc->GetRace();
+						const std::string raceId = Lower(race && race->GetFormEditorID() ? race->GetFormEditorID() : "");
+						if (raceId.find("khajiit") != std::string::npos) {
+							for (const auto& rank : npc->factions) {
+								leader = leader || (rank.faction && rank.faction->IsVendor());
+							}
 						}
+					}
+					if (leader) {
+						g_lastTalked = actor->GetFormID();
+						g_lastTalkedTime = Clock::now();
 					}
 				}
 				return RE::BSEventNotifyControl::kContinue;
@@ -1054,7 +1079,7 @@ namespace skyrimror2::Items
 
 		bool IsBed(const std::string& a_name)
 		{
-			for (const char* word : { "lit", "bed", "couchage", "paillasse", "hamac", "cercueil", "coffin" }) {
+			for (const char* word : { "lit", "bed", "couchage", "paillasse", "hamac", "cercueil", "coffin", "hammock" }) {
 				if (a_name.find(word) != std::string::npos) {
 					return true;
 				}
@@ -1083,7 +1108,7 @@ namespace skyrimror2::Items
 			{
 				if (g_sleepSwitch && Shrines::Enabled() && g_sleptInBed) {
 					g_sleptInBed = false;
-					SKSE::GetTaskInterface()->AddTask([]() { Shrines::OpenSurvivorChoice("Tu te reveilles repose."); });
+					SKSE::GetTaskInterface()->AddTask([]() { Shrines::OpenSurvivorChoice(Lang::T("Tu te reveilles repose.")); });
 				}
 				return RE::BSEventNotifyControl::kContinue;
 			}
@@ -1134,11 +1159,11 @@ namespace skyrimror2::Items
 				buttons.push_back(std::format("{} [{}] x{}", DisplayName(name), TierWord(TierOf(name)), count));
 			}
 			if (pages > 1) {
-				buttons.push_back("Page suivante");
+				buttons.push_back(Lang::T("Page suivante"));
 			}
-			buttons.push_back("Terminer");
-			const std::string body = std::format("Broyeur RoR2 : fondre un objet porte en ferraille de sa couleur{}",
-				pages > 1 ? std::format(" (page {}/{})", page + 1, pages) : std::string());
+			buttons.push_back(Lang::T("Terminer"));
+			const std::string body = Lang::F("Broyeur RoR2 : fondre un objet porte en ferraille de sa couleur{}",
+				pages > 1 ? Lang::F(" (page {}/{})", page + 1, pages) : std::string());
 			Shrines::ShowMessageBox(body, buttons, [names, page, pages](std::uint32_t a_index) {
 				auto* player = RE::PlayerCharacter::GetSingleton();
 				if (!player) {
@@ -1150,7 +1175,7 @@ namespace skyrimror2::Items
 					const char*        scrap = ScrapName(tier);
 					if (scrap && Take(player, name, 1) == 1) {
 						Give(player, scrap, 1);
-						Show(std::format("{} fondu : +1 ferraille {}", DisplayName(name), TierWord(tier)));
+						Show(Lang::F("{} fondu : +1 ferraille {}", DisplayName(name), TierWord(tier)));
 						logger::info("Broyeur : {} -> {}", name, scrap);
 					}
 					SKSE::GetTaskInterface()->AddTask([page]() { OpenScrapper(page); });
@@ -1197,14 +1222,13 @@ namespace skyrimror2::Items
 			std::vector<std::string> buttons;
 			for (std::size_t i = 0; i < pool.size(); ++i) {
 				const bool sold = g_sold.contains({ a_leader, week, static_cast<int>(i) });
-				buttons.push_back(sold ? std::format("{} (vendu)", DisplayName(pool[i])) :
-				                         std::format("{} ({} pieces lunaires)", DisplayName(pool[i]), g_bazaarPrice));
+				buttons.push_back(sold ? Lang::F("{} (vendu)", DisplayName(pool[i])) :
+				                         Lang::F("{} ({} pieces lunaires)", DisplayName(pool[i]), g_bazaarPrice));
 			}
-			buttons.push_back("Partir");
+			buttons.push_back(Lang::T("Partir"));
 			const char*       name = leader->GetDisplayFullName();
-			const std::string body = std::format("{} : \"J'ai des choses venues d'une autre lune, ami.\"\n\nBazar lunaire (tu as {} piece(s) lunaire(s), "
-			                                     "nouveaux objets chaque semaine)",
-				name ? name : "Caravane", Loot::Coins());
+			const std::string body = Lang::F("{} : \"J'ai des choses venues d'une autre lune, ami.\"\n\nBazar lunaire (tu as {} piece(s) lunaire(s), nouveaux objets chaque semaine)",
+				name ? std::string(name) : Lang::T("Caravane"), Loot::Coins());
 			Shrines::ShowMessageBox(body, buttons, [pool, a_leader, week](std::uint32_t a_index) {
 				auto* player = RE::PlayerCharacter::GetSingleton();
 				if (!player || a_index >= pool.size()) {
@@ -1212,13 +1236,13 @@ namespace skyrimror2::Items
 				}
 				const auto key = std::make_tuple(a_leader, week, static_cast<int>(a_index));
 				if (g_sold.contains(key)) {
-					Show("Deja vendu cette semaine");
+					Show(Lang::T("Deja vendu cette semaine"));
 				} else if (!Loot::SpendCoins(g_bazaarPrice)) {
-					Show(std::format("Il faut {} pieces lunaires (tu en as {})", g_bazaarPrice, Loot::Coins()));
+					Show(Lang::F("Il faut {} pieces lunaires (tu en as {})", g_bazaarPrice, Loot::Coins()));
 				} else {
 					g_sold.insert(key);
 					Give(player, pool[a_index], 1);
-					Show(std::format("Objet lunaire : {}", DisplayName(pool[a_index])));
+					Show(Lang::F("Objet lunaire : {}", DisplayName(pool[a_index])));
 					logger::info("Bazar : {} achete", pool[a_index]);
 				}
 				SKSE::GetTaskInterface()->AddTask([a_leader]() { OpenBazaar(a_leader); });
@@ -1250,7 +1274,7 @@ namespace skyrimror2::Items
 				}
 			}
 			if (recipes.empty()) {
-				Show("CHEF errant : aucune recette avec les objets RoR2 que tu portes");
+				Show(Lang::T("CHEF errant : aucune recette avec les objets RoR2 que tu portes"));
 				return;
 			}
 			constexpr std::size_t kPerPage = 7;
@@ -1263,15 +1287,15 @@ namespace skyrimror2::Items
 				buttons.push_back(recipes[i].second);
 			}
 			if (pages > 1) {
-				buttons.push_back("Page suivante");
+				buttons.push_back(Lang::T("Page suivante"));
 			}
-			buttons.push_back("Terminer");
-			const std::string body = std::format("CHEF errant : combiner deux objets RoR2 portes en un nouveau{}",
-				pages > 1 ? std::format(" (page {}/{})", page + 1, pages) : std::string());
+			buttons.push_back(Lang::T("Terminer"));
+			const std::string body = Lang::F("CHEF errant : combiner deux objets RoR2 portes en un nouveau{}",
+				pages > 1 ? Lang::F(" (page {}/{})", page + 1, pages) : std::string());
 			Shrines::ShowMessageBox(body, buttons, [ids, page, pages](std::uint32_t a_index) {
 				if (a_index < ids.size()) {
 					Loot::RequestLoot(11, ids[a_index]);
-					Show("Le CHEF errant cuisine...");
+					Show(Lang::T("Le CHEF errant cuisine..."));
 					logger::info("Marmite : recette {} demandee a RoR2", ids[a_index]);
 				} else if (pages > 1 && a_index == ids.size()) {
 					SKSE::GetTaskInterface()->AddTask([page]() { OpenKitchen(page + 1); });
@@ -1315,11 +1339,11 @@ namespace skyrimror2::Items
 					total += totals[c];
 					if (totals[c] > 0) {
 						shown.push_back(c);
-						buttons.push_back(std::format("{} ({} / {})", kTitles[c], found[c].size(), totals[c]));
+						buttons.push_back(std::format("{} ({} / {})", Lang::T(kTitles[c]), found[c].size(), totals[c]));
 					}
 				}
-				buttons.push_back("Fermer");
-				const std::string body = std::format("Journal RoR2 : {} objets trouves sur {}.\nChaque objet porte une fois est note ici, avec ce qu'il fait.", all, total);
+				buttons.push_back(Lang::T("Fermer"));
+				const std::string body = Lang::F("Journal RoR2 : {} objets trouves sur {}.\nChaque objet porte une fois est note ici, avec ce qu'il fait.", all, total);
 				Shrines::ShowMessageBox(body, buttons, [shown](std::uint32_t a_index) {
 					if (a_index < shown.size()) {
 						const int category = shown[a_index];
@@ -1332,10 +1356,10 @@ namespace skyrimror2::Items
 			constexpr std::size_t kPerPage = 4;
 			const std::size_t     pages = (std::max)(std::size_t{ 1 }, (list.size() + kPerPage - 1) / kPerPage);
 			const std::size_t     page = a_page % pages;
-			std::string           body = std::format("{} : {} / {}{}\n", kTitles[a_category], list.size(), totals[a_category],
-				pages > 1 ? std::format(" (page {}/{})", page + 1, pages) : std::string());
+			std::string           body = std::format("{} : {} / {}{}\n", Lang::T(kTitles[a_category]), list.size(), totals[a_category],
+				pages > 1 ? Lang::F(" (page {}/{})", page + 1, pages) : std::string());
 			if (list.empty()) {
-				body += "\nAucun pour l'instant.";
+				body += Lang::T("\nAucun pour l'instant.");
 			}
 			for (std::size_t i = page * kPerPage; i < list.size() && i < (page + 1) * kPerPage; ++i) {
 				std::string description = list[i].second;
@@ -1345,10 +1369,10 @@ namespace skyrimror2::Items
 				body += std::format("\n{} : {}\n", list[i].first, description);
 			}
 			if (pages > 1) {
-				buttons.push_back("Page suivante");
+				buttons.push_back(Lang::T("Page suivante"));
 			}
-			buttons.push_back("Retour");
-			buttons.push_back("Fermer");
+			buttons.push_back(Lang::T("Retour"));
+			buttons.push_back(Lang::T("Fermer"));
 			const bool more = pages > 1;
 			Shrines::ShowMessageBox(body, buttons, [a_category, page, more](std::uint32_t a_index) {
 				if (more && a_index == 0) {
@@ -1382,7 +1406,7 @@ namespace skyrimror2::Items
 			}
 			if (count > 0) {
 				a_player->RemoveItem(journal, count, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
-				Show(std::format("Le Journal RoR2 s'ouvre maintenant avec la touche {}", Config::Get().KeyName(Action::kJournal)));
+				Show(Lang::F("Le Journal RoR2 s'ouvre maintenant avec la touche {}", Config::Get().KeyName(Action::kJournal)));
 				logger::info("Journal : ancien livre retire de l'inventaire");
 			}
 		}
@@ -1396,7 +1420,7 @@ namespace skyrimror2::Items
 	void OpenPortalBazaar(std::uint32_t a_key)
 	{
 		if (g_catalog.empty()) {
-			Show("Le Bazar ne repond pas encore (RoR2 pas pret)");
+			Show(Lang::T("Le Bazar ne repond pas encore (RoR2 pas pret)"));
 			return;
 		}
 		auto pool = Findable(kLunar);
@@ -1410,11 +1434,11 @@ namespace skyrimror2::Items
 		std::vector<std::string> buttons;
 		for (std::size_t i = 0; i < pool.size(); ++i) {
 			const bool sold = g_sold.contains({ key, -1, static_cast<int>(i) });
-			buttons.push_back(sold ? std::format("{} (vendu)", DisplayName(pool[i])) :
-			                         std::format("{} ({} pieces lunaires)", DisplayName(pool[i]), g_bazaarPrice));
+			buttons.push_back(sold ? Lang::F("{} (vendu)", DisplayName(pool[i])) :
+			                         Lang::F("{} ({} pieces lunaires)", DisplayName(pool[i]), g_bazaarPrice));
 		}
-		buttons.push_back("Partir");
-		const std::string body = std::format("Newt : \"Bienvenue au Bazar entre les temps !\"\n\nBazar lunaire (tu as {} piece(s) lunaire(s))", Loot::Coins());
+		buttons.push_back(Lang::T("Partir"));
+		const std::string body = Lang::F("Newt : \"Bienvenue au Bazar entre les temps !\"\n\nBazar lunaire (tu as {} piece(s) lunaire(s))", Loot::Coins());
 		Shrines::ShowMessageBox(body, buttons, [pool, key, a_key](std::uint32_t a_index) {
 			auto* player = RE::PlayerCharacter::GetSingleton();
 			if (!player || a_index >= pool.size()) {
@@ -1422,13 +1446,13 @@ namespace skyrimror2::Items
 			}
 			const auto slot = std::make_tuple(key, -1, static_cast<int>(a_index));
 			if (g_sold.contains(slot)) {
-				Show("Deja vendu");
+				Show(Lang::T("Deja vendu"));
 			} else if (!Loot::SpendCoins(g_bazaarPrice)) {
-				Show(std::format("Il faut {} pieces lunaires (tu en as {})", g_bazaarPrice, Loot::Coins()));
+				Show(Lang::F("Il faut {} pieces lunaires (tu en as {})", g_bazaarPrice, Loot::Coins()));
 			} else {
 				g_sold.insert(slot);
 				Give(player, pool[a_index], 1);
-				Show(std::format("Objet lunaire : {}", DisplayName(pool[a_index])));
+				Show(Lang::F("Objet lunaire : {}", DisplayName(pool[a_index])));
 				logger::info("Bazar de Newt : {} achete", pool[a_index]);
 			}
 			SKSE::GetTaskInterface()->AddTask([a_key]() { OpenPortalBazaar(a_key); });
@@ -1437,27 +1461,27 @@ namespace skyrimror2::Items
 
 	// ---- Fonctions publiques ----
 
-	const char* TierWord(int a_tier)
+	std::string TierWord(int a_tier)
 	{
 		switch (a_tier) {
 		case kWhite:
-			return "blanc";
+			return Lang::T("blanc");
 		case kGreen:
-			return "vert";
+			return Lang::T("vert");
 		case kRed:
-			return "rouge";
+			return Lang::T("rouge");
 		case kYellow:
-			return "jaune";
+			return Lang::T("jaune");
 		case kVoid:
-			return "vide";
+			return Lang::T("vide");
 		case kLunar:
-			return "lunaire";
+			return Lang::T("lunaire");
 		case kHallowed:
-			return "sanctifie";
+			return Lang::T("sanctifie");
 		case kMeal:
-			return "repas";
+			return Lang::T("repas");
 		default:
-			return "autre";
+			return Lang::T("autre");
 		}
 	}
 
@@ -1492,8 +1516,32 @@ namespace skyrimror2::Items
 			g_wake ? "oui" : "non", g_sleepSwitch ? "oui" : "non");
 	}
 
+	// 0.74 : les noms des objets du fichier SkyrimRoR2.esp dans la langue de Skyrim (journal, effets des atouts
+	// de Destruction). Les pouvoirs des variantes et les objets RoR2 sont deja renommes ailleurs.
+	void TranslateForms()
+	{
+		auto* data = RE::TESDataHandler::GetSingleton();
+		if (!data) {
+			return;
+		}
+		if (auto* journal = data->LookupForm<RE::TESObjectBOOK>(kJournalId, kPluginFile)) {
+			journal->SetFullName(Lang::T("Journal RoR2").c_str());
+		}
+		constexpr const char* kEffects[]{ "RoR2 Brulure", "RoR2 Ralenti", "RoR2 Fuite", "RoR2 Paralysie" };
+		for (std::uint32_t i = 0; i < 4; ++i) {
+			const std::string name = Lang::T(kEffects[i]);
+			if (auto* effect = data->LookupForm<RE::EffectSetting>(0xC00 + i, kPluginFile)) {
+				effect->SetFullName(name.c_str());
+			}
+			if (auto* spell = data->LookupForm<RE::SpellItem>(0xC10 + i, kPluginFile)) {
+				spell->SetFullName(name.c_str());
+			}
+		}
+	}
+
 	void Install()
 	{
+		TranslateForms();
 		LoadSettings();
 		// Premiere valeur au hasard : un RoR2 reste ouvert ne confond pas nos demandes avec celles d'avant.
 		g_sequence = (static_cast<std::uint32_t>(::GetTickCount()) & 0x00FFFFFFu) * 16u + 1u;
@@ -1629,9 +1677,17 @@ namespace skyrimror2::Items
 				}
 			});
 		}
-		const char* reset = keep ? "" : ", difficulte 1";
-		Show(lost > 0 ? std::format("Ton survivant est tombe... Tu te reveilles{}. {} objet(s) RoR2 perdu(s){}.", bed ? " dans ton lit" : "", lost, reset) :
-		                std::format("Ton survivant est tombe... Tu te reveilles{}{}.", bed ? " dans ton lit" : "", keep ? "" : ". Difficulte 1"));
+		std::string text;
+		if (lost > 0) {
+			text = bed ? Lang::F("Ton survivant est tombe... Tu te reveilles dans ton lit. {} objet(s) RoR2 perdu(s).", lost) :
+			             Lang::F("Ton survivant est tombe... Tu te reveilles. {} objet(s) RoR2 perdu(s).", lost);
+		} else {
+			text = bed ? Lang::T("Ton survivant est tombe... Tu te reveilles dans ton lit.") : Lang::T("Ton survivant est tombe... Tu te reveilles.");
+		}
+		if (!keep) {
+			text += " " + Lang::T("Difficulte remise a 1.");
+		}
+		Show(text);
 		g_reviveAt = Clock::now() + std::chrono::seconds(2);
 		g_reviveScheduled = true;
 	}
@@ -1653,10 +1709,10 @@ namespace skyrimror2::Items
 			return;
 		}
 		const std::string body = a_void ?
-		                             std::format("{} : se purifier ?\n\nTous tes objets du vide portes ({}) seront retires.", a_shrineName, count) :
-		                             std::format("{} : se purifier ?\n\nTous tes objets lunaires portes ({}) seront retires, contre une Perle chacun.",
+		                             Lang::F("{} : se purifier ?\n\nTous tes objets du vide portes ({}) seront retires.", a_shrineName, count) :
+		                             Lang::F("{} : se purifier ?\n\nTous tes objets lunaires portes ({}) seront retires, contre une Perle chacun.",
 										 a_shrineName, count);
-		Shrines::ShowMessageBox(body, { "Me purifier", "Non" }, [tier](std::uint32_t a_index) {
+		Shrines::ShowMessageBox(body, { Lang::T("Me purifier"), Lang::T("Non") }, [tier](std::uint32_t a_index) {
 			auto* player = RE::PlayerCharacter::GetSingleton();
 			if (!player || a_index != 0) {
 				return;
@@ -1676,9 +1732,9 @@ namespace skyrimror2::Items
 				}
 			}
 			logger::info("Purification : {} objet(s) {} retire(s), {} perle(s) irradiante(s)", removed, TierWord(tier), shiny);
-			Show(tier == kVoid ? std::format("Purifie : {} objet(s) du vide retire(s)", removed) :
-			                     std::format("Purifie : {} objet(s) lunaire(s) retire(s), {} Perle(s){}", removed, removed - shiny,
-									 shiny > 0 ? std::format(" et {} Perle(s) irradiante(s)", shiny) : std::string()));
+			Show(tier == kVoid ? Lang::F("Purifie : {} objet(s) du vide retire(s)", removed) :
+			                     Lang::F("Purifie : {} objet(s) lunaire(s) retire(s), {} Perle(s){}", removed, removed - shiny,
+									 shiny > 0 ? Lang::F(" et {} Perle(s) irradiante(s)", shiny) : std::string()));
 		});
 	}
 
@@ -1701,7 +1757,7 @@ namespace skyrimror2::Items
 				}
 			}
 			if (candidates.empty()) {
-				Show(std::format("Il faut un objet {} (ou une ferraille {}) sur toi", TierWord(a_tier), TierWord(a_tier)));
+				Show(Lang::F("Il faut un objet {} (ou une ferraille {}) sur toi", TierWord(a_tier), TierWord(a_tier)));
 				return false;
 			}
 			paid = candidates[std::uniform_int_distribution<std::size_t>(0, candidates.size() - 1)(Random())];
@@ -1710,7 +1766,7 @@ namespace skyrimror2::Items
 			return false;
 		}
 		Give(player, a_item, 1);
-		Show(std::format("Imprime : {} (contre {})", DisplayName(a_item), DisplayName(paid)));
+		Show(Lang::F("Imprime : {} (contre {})", DisplayName(a_item), DisplayName(paid)));
 		logger::info("Imprimante : {} contre {}", a_item, paid);
 		return true;
 	}

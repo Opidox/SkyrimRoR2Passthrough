@@ -1,4 +1,5 @@
 #include "Altars.h"
+#include "Lang.h"
 
 #include "Allies.h"
 #include "Config.h"
@@ -111,14 +112,14 @@ namespace skyrimror2::Altars
 		std::string NameOf(const Altar& a_altar)
 		{
 			if (a_altar.type == kPrinter) {
-				return a_altar.item[0] ? std::format("Imprimante : {} [{}]", Items::DisplayName(a_altar.item), Items::TierWord(a_altar.kind)) :
-				                         std::format("Imprimante ({})", Items::TierWord(a_altar.kind));
+				return a_altar.item[0] ? Lang::F("Imprimante : {} [{}]", Items::DisplayName(a_altar.item), Items::TierWord(a_altar.kind)) :
+				                         Lang::F("Imprimante ({})", Items::TierWord(a_altar.kind));
 			}
 			if (a_altar.type == kDrone) {
 				const auto& drone = kDrones[std::clamp(a_altar.kind, 0, kDroneKinds - 1)];
-				return std::format("{} ({} septims)", drone.name, Loot::ScaledPrice(drone.price));
+				return Lang::F("{} ({} septims)", Lang::T(drone.name), Loot::ScaledPrice(drone.price));
 			}
-			return kNames[a_altar.type];
+			return Lang::T(kNames[a_altar.type]);
 		}
 
 		// Reglages
@@ -174,19 +175,19 @@ namespace skyrimror2::Altars
 			const std::string key = Config::Get().KeyName(Action::kUse);
 			switch (a_altar.type) {
 			case kChance:
-				return fmt::format("{} : {} ({} septims)", kNames[kChance], key, ChancePrice(a_altar));
+				return Lang::F("{} : {} ({} septims)", Lang::T(kNames[kChance]), key, ChancePrice(a_altar));
 			case kLunar:
-				return fmt::format("{} : {} ({} piece(s) lunaire(s), tu en as {})", kNames[kLunar], key, g_lunarCost, Loot::Coins());
+				return Lang::F("{} : {} ({} piece(s) lunaire(s), tu en as {})", Lang::T(kNames[kLunar]), key, g_lunarCost, Loot::Coins());
 			case kBlood:
-				return fmt::format("{} : {} (la moitie de tes PV contre {} septims)", kNames[kBlood], key, Loot::ScaledPrice(g_bloodGold));
+				return Lang::F("{} : {} (la moitie de tes PV contre {} septims)", Lang::T(kNames[kBlood]), key, Loot::ScaledPrice(g_bloodGold));
 			case kPrinter:
-				return fmt::format("{} : {} (prend une ferraille ou un objet {} porte)", NameOf(a_altar), key, Items::TierWord(a_altar.kind));
+				return Lang::F("{} : {} (prend une ferraille ou un objet {} porte)", NameOf(a_altar), key, Items::TierWord(a_altar.kind));
 			case kDrone:
-				return fmt::format("{} : {} pour le reparer", NameOf(a_altar), key);
+				return Lang::F("{} : {} pour le reparer", NameOf(a_altar), key);
 			case kPortal:
-				return fmt::format("{} : {} pour entrer au Bazar de Newt", kNames[kPortal], key);
+				return Lang::F("{} : {} pour entrer au Bazar de Newt", Lang::T(kNames[kPortal]), key);
 			default:
-				return fmt::format("{} : {}", kNames[a_altar.type], key);
+				return fmt::format("{} : {}", Lang::T(kNames[a_altar.type]), key);
 			}
 		}
 
@@ -472,7 +473,7 @@ namespace skyrimror2::Altars
 				Prepare(altar);
 				g_altars.push_back(altar);
 				logger::info("Autels : {} pose dehors a {:.0f} m du joueur", NameOf(altar), distance);
-				Show(fmt::format("Dans les environs : {}", NameOf(altar)));
+				Show(Lang::F("Dans les environs : {}", NameOf(altar)));
 				return;
 			}
 		}
@@ -533,7 +534,7 @@ namespace skyrimror2::Altars
 				g_altars.push_back(altar);
 				logger::info("Autels : {} pose a cote du contenant {:08X} (cellule {:08X}, a {:.0f} m du joueur)", NameOf(altar), container,
 					a_cell->GetFormID(), spot.GetDistance(a_player->GetPosition()) / kUnitsPerMeter);
-				Show(fmt::format("Dans ce lieu : {}", NameOf(altar)));
+				Show(Lang::F("Dans ce lieu : {}", NameOf(altar)));
 			}
 		}
 
@@ -616,7 +617,7 @@ namespace skyrimror2::Altars
 		void Use(Altar& a_altar, RE::PlayerCharacter* a_player)
 		{
 			if (Used(a_altar)) {
-				Show(fmt::format("{} : deja utilise", NameOf(a_altar)));
+				Show(Lang::F("{} : deja utilise", NameOf(a_altar)));
 				return;
 			}
 			const RE::NiPoint3 at(a_altar.x, a_altar.y, a_altar.z);
@@ -625,12 +626,12 @@ namespace skyrimror2::Altars
 				{
 					const int price = ChancePrice(a_altar);
 					if (!Loot::PayGold(price)) {
-						Show(fmt::format("Il faut {} septims", price));
+						Show(Lang::F("Il faut {} septims", price));
 						return;
 					}
 					++a_altar.tries;
 					if (Roll(g_chanceFail)) {
-						Show("L'autel de la Chance ne donne rien...");
+						Show(Lang::T("L'autel de la Chance ne donne rien..."));
 						return;
 					}
 					const int roll = std::uniform_int_distribution<int>(1, 100)(Random());
@@ -640,14 +641,14 @@ namespace skyrimror2::Altars
 				}
 			case kOrder:
 				Loot::RequestLoot(7, 1);
-				Show("L'autel de l'Ordre melange tes objets");
+				Show(Lang::T("L'autel de l'Ordre melange tes objets"));
 				++a_altar.uses;
 				break;
 			case kCombat:
 				{
 					const int count = std::min(3 + static_cast<int>(Loot::Difficulty() / 2.0f), 8);
 					const int spawned = CallEnemies(a_player, at, count);
-					Show(spawned > 0 ? fmt::format("L'autel du Combat appelle {} ennemi(s) !", spawned) : std::string("Rien ne repond a l'appel"));
+					Show(spawned > 0 ? Lang::F("L'autel du Combat appelle {} ennemi(s) !", spawned) : std::string(Lang::T("Rien ne repond a l'appel")));
 					++a_altar.uses;
 					break;
 				}
@@ -656,18 +657,18 @@ namespace skyrimror2::Altars
 					const int gold = Loot::ScaledPrice(g_bloodGold);
 					Loot::RequestLoot(8, 1);
 					Loot::GiveGold(gold);
-					Show(fmt::format("L'autel du Sang prend la moitie de tes PV : +{} septims", gold));
+					Show(Lang::F("L'autel du Sang prend la moitie de tes PV : +{} septims", gold));
 					++a_altar.uses;
 					break;
 				}
 			case kMountain:
 				Loot::AddMountain();
-				Show("Defi de la Montagne : le prochain coffre de boss donnera un objet de plus, avec plus de renforts");
+				Show(Lang::T("Defi de la Montagne : le prochain coffre de boss donnera un objet de plus, avec plus de renforts"));
 				++a_altar.uses;
 				break;
 			case kLunar:
 				if (!Loot::SpendCoins(g_lunarCost)) {
-					Show(fmt::format("Il faut {} piece(s) lunaire(s) (tu en as {})", g_lunarCost, Loot::Coins()));
+					Show(Lang::F("Il faut {} piece(s) lunaire(s) (tu en as {})", g_lunarCost, Loot::Coins()));
 					return;
 				}
 				Loot::RequestLoot(5, 1);
@@ -676,7 +677,7 @@ namespace skyrimror2::Altars
 			case kPrinter:
 				FillPrinter(a_altar);
 				if (!a_altar.item[0]) {
-					Show("L'imprimante ne repond pas encore (RoR2 pas pret)");
+					Show(Lang::T("L'imprimante ne repond pas encore (RoR2 pas pret)"));
 					return;
 				}
 				if (Items::PrintFor(a_altar.item, a_altar.kind)) {
@@ -688,11 +689,11 @@ namespace skyrimror2::Altars
 					const auto& drone = kDrones[std::clamp(a_altar.kind, 0, kDroneKinds - 1)];
 					const int   price = Loot::ScaledPrice(drone.price);
 					if (!Loot::PayGold(price)) {
-						Show(fmt::format("Il faut {} septims pour reparer ce drone", price));
+						Show(Lang::F("Il faut {} septims pour reparer ce drone", price));
 						return;
 					}
 					Loot::RequestLoot(20 + std::clamp(a_altar.kind, 0, kDroneKinds - 1), 1);
-					Show(fmt::format("{} repare : il te rejoint (visible des le prochain lancement s'il est nouveau)", drone.name));
+					Show(Lang::F("{} repare : il te rejoint (visible des le prochain lancement s'il est nouveau)", Lang::T(drone.name)));
 					++a_altar.uses;
 					break;
 				}
@@ -863,7 +864,7 @@ namespace skyrimror2::Altars
 			g_near = nearest;
 			if (nearest >= 0) {
 				const auto& altar = g_altars[nearest];
-				Show(Used(altar) ? fmt::format("{} (deja utilise)", NameOf(altar)) : Prompt(altar));
+				Show(Used(altar) ? Lang::F("{} (deja utilise)", NameOf(altar)) : Prompt(altar));
 			}
 		}
 
@@ -922,7 +923,7 @@ namespace skyrimror2::Altars
 		altar.placed = 1;
 		g_altars.push_back(altar);
 		logger::info("Autels : porte du Bazar ouverte pres du coffre {:08X}{}", a_chest->GetFormID(), found ? "" : " (devant le joueur)");
-		Show("Une porte bleue s'ouvre pres du coffre : le Bazar de Newt !");
+		Show(Lang::T("Une porte bleue s'ouvre pres du coffre : le Bazar de Newt !"));
 	}
 
 	void Save(SKSE::SerializationInterface* a_intfc)

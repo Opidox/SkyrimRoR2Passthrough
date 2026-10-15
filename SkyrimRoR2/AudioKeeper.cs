@@ -37,12 +37,12 @@ namespace SkyrimRoR2
         {
             _log = log;
             _enabled = config.Bind("7 - Sons", "SonsRoR2", true,
-                "Fait entendre les sons de RoR2 (tirs, explosions, objets...) pendant qu'on joue dans Skyrim.");
-            _master = config.Bind("7 - Sons", "VolumeGeneral", 100f, "Volume general de RoR2 pendant le jeu dans Skyrim (0 a 100).");
-            _effects = config.Bind("7 - Sons", "VolumeSons", 80f, "Volume des sons de RoR2 (0 a 100).");
-            _music = config.Bind("7 - Sons", "VolumeMusique", 0f, "Volume de la musique de RoR2 (0 a 100). 0 : seule la musique de Skyrim.");
+                "Plays RoR2 sounds (shots, explosions, items...) while you play in Skyrim.");
+            _master = config.Bind("7 - Sons", "VolumeGeneral", 100f, "Master volume of RoR2 while playing in Skyrim (0 to 100).");
+            _effects = config.Bind("7 - Sons", "VolumeSons", 80f, "Volume of RoR2 sound effects (0 to 100).");
+            _music = config.Bind("7 - Sons", "VolumeMusique", 0f, "Volume of RoR2 music (0 to 100). 0: only Skyrim's music.");
             _monsterSounds = config.Bind("7 - Sons", "SonsDesDoubles", false,
-                "Sons des doubles RoR2 des ennemis Skyrim (apparition, cris, mort). Coupes par defaut : c'est l'ennemi de Skyrim qu'on entend.");
+                "Sounds of the RoR2 doubles of Skyrim enemies (spawn, cries, death). Off by default: you hear the Skyrim enemy.");
         }
 
         // Empêche Wwise de se mettre en veille quand la fenêtre de RoR2 perd la main.

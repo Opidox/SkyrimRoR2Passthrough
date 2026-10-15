@@ -1,4 +1,5 @@
 #include "Launcher.h"
+#include "Lang.h"
 
 #include "Config.h"
 
@@ -20,9 +21,9 @@ namespace skyrimror2::Launcher
 		constexpr const wchar_t* kRoR2SteamId = L"632360";
 
 		// Message dans le coin de l'ecran (depuis le fil principal du jeu, seul autorise a afficher).
-		void Notify(const char* a_text)
+		void Notify(const char* a_key)
 		{
-			SKSE::GetTaskInterface()->AddTask([a_text]() { RE::SendHUDMessage::ShowHUDMessage(a_text); });
+			SKSE::GetTaskInterface()->AddTask([text = Lang::T(a_key)]() { RE::SendHUDMessage::ShowHUDMessage(text.c_str()); });
 		}
 
 		std::wstring Widen(const std::string& a_text)

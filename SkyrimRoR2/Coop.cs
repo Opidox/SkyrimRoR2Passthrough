@@ -58,22 +58,19 @@ namespace SkyrimRoR2
             _log = log;
             Instance = this;
             _mode = config.Bind(Section, "Mode", "Solo",
-                "Solo : partie seul (comme avant). Hote : tu heberges la partie coop, tes amis te rejoignent. " +
-                "Invite : tu rejoins la partie d'un ami (mets son identifiant Steam dans IdentifiantHote).");
+                "Solo: play alone. Hote (host): you host the co-op run and your friends join you. Invite (guest): you join a friend's run (put their Steam ID in IdentifiantHote).");
             _hostId = config.Bind(Section, "IdentifiantHote", "",
-                "Invite seulement : l'identifiant Steam (SteamID64, 17 chiffres) de l'hote. L'hote le trouve dans son journal RoR2 " +
-                "(ligne \"Coop : ton identifiant Steam\") ou dans l'adresse de son profil Steam.");
+                "Guest only: the host's Steam ID (SteamID64, 17 digits). The host finds it in their RoR2 log (line \"Coop : ton identifiant Steam\") or in the address of their Steam profile.");
             _waitPlayers = config.Bind(Section, "JoueursAttendus", 2,
-                "Hote seulement : la partie commence quand ce nombre de joueurs (toi compris) est dans le salon...");
+                "Host only: the run starts when this many players (you included) are in the lobby...");
             _waitSeconds = config.Bind(Section, "AttenteMax", 120,
-                "...ou au bout de ce nombre de secondes (les retardataires peuvent essayer de rejoindre en cours de partie).");
-            _reviveDistance = config.Bind(Section, "DistanceReleve", 2.5f, "Distance (m) a laquelle rester d'un coequipier a terre pour le relever.");
-            _reviveSeconds = config.Bind(Section, "DureeReleve", 7f, "Temps (s) a rester pres de lui pour le relever.");
+                "...or after this many seconds (latecomers can try to join during the run).");
+            _reviveDistance = config.Bind(Section, "DistanceReleve", 2.5f, "Distance (m) to stay within from a downed teammate to revive them.");
+            _reviveSeconds = config.Bind(Section, "DureeReleve", 7f, "Time (s) to stay near them to revive them.");
             _helpRange = config.Bind(Section, "DistanceAide", 40f,
-                "Un joueur qui tombe a moins de cette distance (m) d'un coequipier debout reste a terre (il peut etre releve). " +
-                "Plus loin, c'est comme en solo : reveil au lit, objets portes perdus.");
+                "A player who falls within this distance (m) of a standing teammate stays down (they can be revived). Further away it works like solo: wake up in bed, carried items lost.");
             _alonePatience = config.Bind(Section, "AttenteSeul", 45f,
-                "A terre sans aucun coequipier a moins de DistanceAide pendant ce temps (s) : il se reveille comme en solo.");
+                "Downed with no teammate within DistanceAide for this long (s): they wake up like in solo.");
             _zone = new CoopZone(log);
         }
 
@@ -862,14 +859,14 @@ namespace SkyrimRoR2
             if (downed)
             {
                 revive = peer.Progress;
-                label = peer.Helper != null ? peer.Helper.Name + " te releve" : "A terre : un coequipier doit rester pres de toi";
+                label = peer.Helper != null ? "{} te releve|" + peer.Helper.Name : "A terre : un coequipier doit rester pres de toi";  // 0.74 : traduit par Skyrim
                 return;
             }
             Peer target = _all.FirstOrDefault(o => o.State == 1 && o.Helper == peer);
             if (target != null)
             {
                 revive = target.Progress;
-                label = "Tu releves " + target.Name;
+                label = "Tu releves {}|" + target.Name;
             }
         }
 

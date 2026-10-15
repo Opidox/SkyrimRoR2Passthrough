@@ -1,4 +1,5 @@
 #include "Loadouts.h"
+#include "Lang.h"
 
 #include "Challenges.h"
 #include "Shrines.h"
@@ -190,11 +191,11 @@ namespace skyrimror2::Loadouts
 					const bool exists = hasChoice && variant < static_cast<int>(list->size()) && !(*list)[variant].empty();
 					if (exists) {
 						const bool active = unlocked[slot][variant] && (loadout[slot] == variant || (loadout[slot] < 0 && variant == 0));
-						std::string state = active ? " (actif)" : "";
+						std::string state = active ? Lang::T(" (actif)") : "";
 						if (!unlocked[slot][variant]) {
-							state = std::format(" (verrouille : {})", Challenges::Requirement(a_survivor, slot, variant));
+							state = Lang::F(" (verrouille : {})", Challenges::Requirement(a_survivor, slot, variant));
 						}
-						std::string slotName = kSlotNames[slot];
+						std::string slotName = Lang::T(kSlotNames[slot]);
 						if (const auto title = g_titles.find(a_survivor); slot >= kFirstExtraSlot && title != g_titles.end() && !title->second[slot].empty()) {
 							slotName = title->second[slot];
 						}
@@ -257,7 +258,7 @@ namespace skyrimror2::Loadouts
 			if (!Challenges::IsUnlocked(survivor, a_slot, a_variant)) {
 				const auto requirement = Challenges::Requirement(survivor, a_slot, a_variant);
 				logger::info("Variantes : {} competence {} variante {} verrouillee ({})", survivor, a_slot + 1, a_variant, requirement);
-				RE::SendHUDMessage::ShowHUDMessage(std::format("Variante verrouillee : il faut {}", requirement).c_str());
+				RE::SendHUDMessage::ShowHUDMessage(Lang::F("Variante verrouillee : il faut {}", requirement).c_str());
 				RestorePreviousPower(a_player);
 				return;
 			}
@@ -267,18 +268,18 @@ namespace skyrimror2::Loadouts
 				it->second[a_slot] = a_variant;
 				++g_sequence;
 			}
-			std::string name = std::format("variante {}", a_variant + 1);
+			std::string name = Lang::F("variante {}", a_variant + 1);
 			if (const auto it = g_names.find(survivor); it != g_names.end() && a_variant < static_cast<int>(it->second[a_slot].size())) {
 				name = it->second[a_slot][a_variant];
 			}
 			logger::info("Variantes : {} competence {} -> variante {} ({})", survivor, a_slot + 1, a_variant, name);
-			std::string slotName = kSlotNames[a_slot];
+			std::string slotName = Lang::T(kSlotNames[a_slot]);
 			if (const auto title = g_titles.find(survivor); a_slot >= kFirstExtraSlot && title != g_titles.end() && !title->second[a_slot].empty()) {
 				slotName = title->second[a_slot];
 			}
-			const auto message = a_slot == kSkinSlot       ? std::format("Skin : {}", name) :
+			const auto message = a_slot == kSkinSlot       ? Lang::F("Skin : {}", name) :
 			                     a_slot >= kFirstExtraSlot ? std::format("{} : {}", slotName, name) :
-			                                                 std::format("Competence {} : {}", a_slot + 1, name);
+			                                                 Lang::F("Competence {} : {}", a_slot + 1, name);
 			RE::SendHUDMessage::ShowHUDMessage(message.c_str());
 			RefreshPowers(a_player, survivor);  // met a jour la mention "(actif)"
 			RestorePreviousPower(a_player);
@@ -407,8 +408,8 @@ namespace skyrimror2::Loadouts
 				for (int slot = 0; slot < kSlots && !g_silentUnlocks && names != g_names.end(); ++slot) {
 					for (int variant = 0; variant < static_cast<int>(names->second[slot].size()) && variant < kMaxVariants; ++variant) {
 						if (unlocked[slot][variant] && !before[slot][variant] && names->second[slot].size() > 1) {
-							const auto message = slot == kSkinSlot ? std::format("Nouveau skin debloque : {}", names->second[slot][variant]) :
-							                                         std::format("Nouvelle variante debloquee : {}", names->second[slot][variant]);
+							const auto message = slot == kSkinSlot ? Lang::F("Nouveau skin debloque : {}", names->second[slot][variant]) :
+							                                         Lang::F("Nouvelle variante debloquee : {}", names->second[slot][variant]);
 							RE::SendHUDMessage::ShowHUDMessage(message.c_str());
 							logger::info("Variantes : {} competence {} variante {} debloquee", survivor, slot + 1, variant);
 						}

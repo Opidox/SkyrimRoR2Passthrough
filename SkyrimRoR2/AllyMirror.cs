@@ -47,23 +47,20 @@ namespace SkyrimRoR2
             _log = log;
             _solids = new SolidMirror(log);
             _enabled = ConfigMove.Bind(config, "Monde", "3 - Modeles 3D", "ModelesAllies", true,
-                "Affiche les allies dans Skyrim avec leur vrai modele RoR2 (converti au format de Skyrim). Sinon, ils sont filmes par-dessus l'image.");
+                "Shows allies in Skyrim with their real RoR2 model (converted to Skyrim's format). Otherwise they are filmed and drawn over the picture.");
             _survivorLikeCommando = ConfigMove.Bind(config, "Monde", "3 - Modeles 3D", "SurvivantTailleCommando", true,
-                "Dans Skyrim, tous les survivants sont ramenes a la meme hauteur (HauteurSurvivant), comme un personnage de Skyrim.");
+                "In Skyrim, all survivors are scaled to the same height (HauteurSurvivant), like a Skyrim character.");
             _survivorHeight = ConfigMove.Bind(config, "Monde", "3 - Modeles 3D", "HauteurSurvivant", 1.8f,
-                "Hauteur des survivants dans Skyrim, en metres (un personnage de Skyrim fait environ 1,8 m).");
+                "Height of survivors in Skyrim, in meters (a Skyrim character is about 1.8 m tall).");
             _allySize = ConfigMove.Bind(config, "Monde", "3 - Modeles 3D", "TailleAllies", 0.5f,
-                "Taille des allies (drones, tourelles...) dans Skyrim. 1 = taille RoR2, 0.5 = moitie.");
+                "Size of allies (drones, turrets...) in Skyrim. 1 = RoR2 size, 0.5 = half.");
             _shotSize = ConfigMove.Bind(config, "Monde", "3 - Modeles 3D", "TailleTirs", 0.75f,
-                "Taille des tirs et objets poses (grenades, mines, pylones...) dans Skyrim, en plus de la taille de celui qui " +
-                "les lance (un survivant ramene a 1,8 m lance des tirs a sa mesure). 1 = meme proportion que dans RoR2.");
+                "Size of shots and placed objects (grenades, mines, pylons...) in Skyrim, on top of the size of whoever throws them (a survivor scaled to 1.8 m throws shots to match). 1 = same proportion as in RoR2.");
             _preconvert = ConfigMove.Bind(config, "Monde", "3 - Modeles 3D", "PreconvertirTirs", true,
-                "Convertit d'avance, en arriere-plan pendant la partie, les modeles de tous les tirs de RoR2. " +
-                "Skyrim ne voit les fichiers qu'au lancement suivant : apres une premiere partie, tous les tirs sont prets.");
+                "Converts the models of every RoR2 shot ahead of time, in the background during the run. Skyrim only sees the files at the next launch: after a first run, all shots are ready.");
             // 0.66 : les objets ajoutés dans Skyrim ne reçoivent pas la lumière des lampes : ils brillent un peu d'eux-mêmes.
             ModelExporter.MinLight = Mathf.Clamp01(ConfigMove.Bind(config, "Monde", "3 - Modeles 3D", "LumiereMinimum", 0.3f,
-                "Lumiere minimum des modeles dans Skyrim (autels, imprimantes, drones, allies), de 0 a 1. Skyrim ne les eclaire " +
-                "pas avec ses lampes : sans ca, ils sortent presque noirs dans les donjons. Compte pour les modeles convertis ensuite.").Value);
+                "Minimum light on models in Skyrim (shrines, printers, drones, allies), from 0 to 1. Skyrim's lamps do not light them: without this they look almost black in dungeons. Applies to models converted afterwards.").Value);
         }
 
         // 0.63 : le survivant n'est plus converti en modèle 3D pour Skyrim (abandonné : une vue filmée à la troisième

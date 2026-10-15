@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(SkyrimRoR2 VERSION 0.73.9 LANGUAGES CXX)
+project(SkyrimRoR2 VERSION 0.74.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -37,6 +37,8 @@ add_commonlibsse_plugin(
 		src/Hud.h
 		src/InputWatcher.cpp
 		src/InputWatcher.h
+		src/Lang.cpp
+		src/Lang.h
 		src/Launcher.cpp
 		src/Launcher.h
 		src/Loadouts.cpp

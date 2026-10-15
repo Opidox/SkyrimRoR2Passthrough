@@ -363,9 +363,9 @@ namespace SkyrimRoR2
             {
                 EquipmentDef def = EquipmentCatalog.GetEquipmentDef((EquipmentIndex)i);
                 if (def == null || string.IsNullOrEmpty(def.nameToken)) continue;
-                string name = Clean(Language.GetString(def.nameToken));
+                string name = Clean(SkyrimLanguage.Text(def.nameToken));
                 if (name.Length == 0 || name == def.nameToken) name = def.name;
-                string description = Clean(Language.GetString(def.pickupToken));
+                string description = Clean(SkyrimLanguage.Text(def.pickupToken));
                 string flags = (def.isLunar ? "l" : "") + (def.isBoss ? "b" : "") + (def.name.StartsWith("Elite", StringComparison.Ordinal) ? "e" : "");
                 text.Append(def.name).Append('\t').Append(name).Append('\t').Append(description).Append('\t').Append(flags).Append('\n');
                 count++;
@@ -392,9 +392,9 @@ namespace SkyrimRoR2
                 bool findable = tier <= 5 && !def.ContainsTag(ItemTag.Scrap) && !def.ContainsTag(ItemTag.WorldUnique) &&
                                 (Run.instance == null || Run.instance.IsItemAvailable(def.itemIndex));
                 if (findable) flags += "t";
-                string name = Clean(Language.GetString(def.nameToken));
+                string name = Clean(SkyrimLanguage.Text(def.nameToken));
                 if (name.Length == 0) name = def.name;
-                string description = Clean(Language.GetString(def.pickupToken));
+                string description = Clean(SkyrimLanguage.Text(def.pickupToken));
                 text.Append(def.name).Append('\t').Append(tier).Append('\t').Append(name).Append('\t').Append(description).Append('\t').Append(flags).Append('\n');
                 count++;
             }

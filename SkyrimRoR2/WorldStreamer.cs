@@ -84,16 +84,15 @@ namespace SkyrimRoR2
         {
             _log = log;
             _enabled = ConfigMove.Bind(config, "Monde", "4 - Effets", "ImageEffets2D", false,
-                "Filme les effets de RoR2 (trainees, particules, eclairs de tir...) et les affiche en image par-dessus Skyrim. " +
-                "Desactive par defaut : les allies, tirs et projectiles sont en vrai 3D et les effets sont rejoues par Skyrim.");
-            _height = ConfigMove.Bind(config, "Monde", "5 - Ancienne image 2D", "ImageAlliesHauteur", 720, "Hauteur (pixels) de l'image des allies et des tirs envoyee a Skyrim.");
-            _fps = ConfigMove.Bind(config, "Monde", "5 - Ancienne image 2D", "ImageAlliesParSeconde", 60, "Images par seconde des allies et des tirs envoyees a Skyrim.");
-            _flip = ConfigMove.Bind(config, "Monde", "5 - Ancienne image 2D", "RetournerImageAllies", true, "Retourne l'image verticalement (a changer si elle apparait a l'envers).");
-            _light = ConfigMove.Bind(config, "Monde", "5 - Ancienne image 2D", "SoleilAllies", 0.9f, "Force du soleil (venant d'en haut, fixe dans le monde) qui eclaire les allies filmes.");
-            _ambient = ConfigMove.Bind(config, "Monde", "5 - Ancienne image 2D", "AmbianceAllies", 0.45f, "Lumiere ambiante sur les allies (eclaire aussi les cotes a l'ombre).");
-            _saturation = ConfigMove.Bind(config, "Monde", "5 - Ancienne image 2D", "SaturationAllies", 0.75f, "Couleurs des allies : 1 = couleurs vives de RoR2, plus bas = plus ternes, comme Skyrim.");
-            _exposure = ConfigMove.Bind(config, "Monde", "5 - Ancienne image 2D", "LuminositeAllies", 0.85f, "Luminosite finale des allies (1 = telle quelle).");
-            _supersample = ConfigMove.Bind(config, "Monde", "5 - Ancienne image 2D", "LissageAllies", 2, "Filme l'image 2 fois plus grande puis la reduit : bords lisses (1 = desactive, plus rapide).");
+                "Films RoR2 effects (trails, particles, muzzle flashes...) and shows them as a picture over Skyrim. Off by default: allies, shots and projectiles are real 3D and effects are replayed by Skyrim.");
+            _height = ConfigMove.Bind(config, "Monde", "5 - Ancienne image 2D", "ImageAlliesHauteur", 720, "Height (pixels) of the picture of allies and shots sent to Skyrim.");
+            _fps = ConfigMove.Bind(config, "Monde", "5 - Ancienne image 2D", "ImageAlliesParSeconde", 60, "Frames per second of allies and shots sent to Skyrim.");
+            _flip = ConfigMove.Bind(config, "Monde", "5 - Ancienne image 2D", "RetournerImageAllies", true, "Flips the picture vertically (change it if it shows upside down).");
+            _light = ConfigMove.Bind(config, "Monde", "5 - Ancienne image 2D", "SoleilAllies", 0.9f, "Strength of the sun (from above, fixed in the world) lighting the filmed allies.");
+            _ambient = ConfigMove.Bind(config, "Monde", "5 - Ancienne image 2D", "AmbianceAllies", 0.45f, "Ambient light on allies (also lights the shaded sides).");
+            _saturation = ConfigMove.Bind(config, "Monde", "5 - Ancienne image 2D", "SaturationAllies", 0.75f, "Ally colors: 1 = vivid RoR2 colors, lower = duller, like Skyrim.");
+            _exposure = ConfigMove.Bind(config, "Monde", "5 - Ancienne image 2D", "LuminositeAllies", 0.85f, "Final brightness of allies (1 = unchanged).");
+            _supersample = ConfigMove.Bind(config, "Monde", "5 - Ancienne image 2D", "LissageAllies", 2, "Films the picture twice as big then shrinks it: smooth edges (1 = off, faster).");
         }
 
         // camera : position de la caméra Skyrim dans le monde de RoR2 ; forward : sa direction ;

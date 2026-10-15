@@ -64,6 +64,9 @@ mkdir "dist\SkyrimRoR2-Skyrim\SKSE\Plugins"
 copy /y "skse\build\RelWithDebInfo\SkyrimRoR2.dll" "dist\SkyrimRoR2-Skyrim\SKSE\Plugins\" >nul || goto :erreur
 copy /y "skse\SkyrimRoR2.ini" "dist\SkyrimRoR2-Skyrim\SKSE\Plugins\" >nul || goto :erreur
 copy /y "skse\SkyrimRoR2.esp" "dist\SkyrimRoR2-Skyrim\" >nul || goto :erreur
+rem 0.74 : les textes du mod dans chaque langue de Skyrim
+mkdir "dist\SkyrimRoR2-Skyrim\SKSE\Plugins\SkyrimRoR2_Lang"
+copy /y "skse\lang\*.txt" "dist\SkyrimRoR2-Skyrim\SKSE\Plugins\SkyrimRoR2_Lang\" >nul || goto :erreur
 powershell -NoProfile -Command "Compress-Archive -Path 'dist\SkyrimRoR2-Skyrim\*' -DestinationPath 'dist\SkyrimRoR2-Skyrim.zip' -Force" || goto :erreur
 
 rem --- 6. Mise a jour directe dans MO2, si le mod y est deja installe ---
@@ -73,6 +76,8 @@ if exist "%MO2MOD%\SKSE\Plugins" (
   copy /y "skse\build\RelWithDebInfo\SkyrimRoR2.dll" "%MO2MOD%\SKSE\Plugins\" >nul && set "MO2DONE=1"
   rem Les pouvoirs des variantes de competences (a cocher dans la liste des plugins de MO2).
   copy /y "skse\SkyrimRoR2.esp" "%MO2MOD%\" >nul
+  if not exist "%MO2MOD%\SKSE\Plugins\SkyrimRoR2_Lang" mkdir "%MO2MOD%\SKSE\Plugins\SkyrimRoR2_Lang"
+  copy /y "skse\lang\*.txt" "%MO2MOD%\SKSE\Plugins\SkyrimRoR2_Lang\" >nul
   rem Le fichier de reglages n'est copie que s'il manque, pour garder tes reglages.
   rem S'il existe, les reglages des nouvelles versions y sont ajoutes (tes valeurs ne bougent pas).
   if not exist "%MO2MOD%\SKSE\Plugins\SkyrimRoR2.ini" (

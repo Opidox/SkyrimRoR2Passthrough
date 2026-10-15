@@ -1,4 +1,5 @@
 #include "Challenges.h"
+#include "Lang.h"
 
 #include <map>
 
@@ -263,10 +264,20 @@ namespace skyrimror2::Challenges
 		if (!challenge) {
 			return {};
 		}
-		if (challenge->kind == Kind::kDragons) {
-			return std::format("{} ({} tues)", challenge->text, static_cast<int>(DragonCount()));
+		// 0.74 : dans la langue de Skyrim (le nom de competence vient du jeu lui-meme).
+		const int level = static_cast<int>(challenge->level);
+		switch (challenge->kind) {
+		case Kind::kLevel:
+			return Lang::F("Niveau {}", level);
+		case Kind::kDragons:
+			return Lang::F("{} dragons tues ({} pour l'instant)", level, static_cast<int>(DragonCount()));
+		default:
+			{
+				auto*       info = RE::ActorValueList::GetActorValueInfo(challenge->skill);
+				const char* skill = info ? info->GetFullName() : nullptr;
+				return skill && *skill ? std::format("{} {}", skill, level) : challenge->text;
+			}
 		}
-		return challenge->text;
 	}
 
 	void Install()

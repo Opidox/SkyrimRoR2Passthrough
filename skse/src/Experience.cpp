@@ -129,6 +129,15 @@ namespace skyrimror2::Experience
 				{ "illusion", RE::ActorValue::kIllusion }, { "guerison", RE::ActorValue::kRestoration },
 				{ "retablissement", RE::ActorValue::kRestoration }, { "enchantement", RE::ActorValue::kEnchanting },
 				{ "aucune", RE::ActorValue::kNone },
+				// 0.74 : les noms anglais (le .ini est en anglais)
+				{ "archery", RE::ActorValue::kArchery }, { "marksman", RE::ActorValue::kArchery },
+				{ "onehanded", RE::ActorValue::kOneHanded }, { "twohanded", RE::ActorValue::kTwoHanded },
+				{ "block", RE::ActorValue::kBlock }, { "smithing", RE::ActorValue::kSmithing },
+				{ "heavyarmor", RE::ActorValue::kHeavyArmor }, { "lightarmor", RE::ActorValue::kLightArmor },
+				{ "pickpocket", RE::ActorValue::kPickpocket }, { "lockpicking", RE::ActorValue::kLockpicking },
+				{ "sneak", RE::ActorValue::kSneak }, { "alchemy", RE::ActorValue::kAlchemy },
+				{ "speech", RE::ActorValue::kSpeech }, { "restoration", RE::ActorValue::kRestoration },
+				{ "enchanting", RE::ActorValue::kEnchanting }, { "none", RE::ActorValue::kNone },
 			};
 			const std::string name = Simplify(a_name);
 			for (const auto& [key, skill] : kSkills) {
@@ -219,10 +228,10 @@ namespace skyrimror2::Experience
 		Element ParseElement(const std::string& a_name)
 		{
 			const std::string name = Simplify(a_name);
-			if (name == "foudre" || name == "choc" || name == "electricite") {
+			if (name == "foudre" || name == "choc" || name == "electricite" || name == "shock" || name == "lightning") {
 				return Element::kShock;
 			}
-			if (name == "gel" || name == "glace" || name == "froid") {
+			if (name == "gel" || name == "glace" || name == "froid" || name == "frost" || name == "ice" || name == "cold") {
 				return Element::kFrost;
 			}
 			return Element::kFire;

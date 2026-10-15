@@ -96,20 +96,20 @@ namespace SkyrimRoR2
             _mapName = mapName ?? BridgeInfo.SurvivorViewMapName;
             _who = who;
             _enabled = config.Bind(Section, "Activer", true,
-                "A la 3e personne dans Skyrim, filme le survivant de RoR2 (avec son skin) depuis la camera de Skyrim et l'affiche a la place du personnage Skyrim.");
+                "In third person in Skyrim, films the RoR2 survivor (with its skin) from Skyrim's camera and shows it in place of the Skyrim character.");
             _height = config.Bind(Section, "Hauteur", 1080,
-                "Hauteur de l'ecran filme, en pixels (1080 = net en 1080p ; 720 = plus leger). Seul le rectangle du survivant est envoye.");
-            _fps = config.Bind(Section, "ImagesParSeconde", 60, "Images par seconde envoyees a Skyrim (120 maximum).");
-            _antialiasing = config.Bind(Section, "Lissage", 4, "Lissage des bords (1 = aucun, 2, 4 ou 8).");
-            _saturation = config.Bind(Section, "Saturation", 0.85f, "Couleurs : 1 = couleurs vives de RoR2, plus bas = plus ternes, comme Skyrim.");
-            _exposure = config.Bind(Section, "Luminosite", 1.0f, "Luminosite finale du survivant (1 = telle quelle).");
-            _flip = config.Bind(Section, "RetournerImage", true, "Retourne l'image verticalement (a changer si le survivant apparait a l'envers).");
+                "Height of the filmed screen, in pixels (1080 = sharp at 1080p; 720 = lighter). Only the survivor's rectangle is sent.");
+            _fps = config.Bind(Section, "ImagesParSeconde", 60, "Frames per second sent to Skyrim (120 maximum).");
+            _antialiasing = config.Bind(Section, "Lissage", 4, "Edge smoothing (1 = none, 2, 4 or 8).");
+            _saturation = config.Bind(Section, "Saturation", 0.85f, "Colors: 1 = vivid RoR2 colors, lower = duller, like Skyrim.");
+            _exposure = config.Bind(Section, "Luminosite", 1.0f, "Final brightness of the survivor (1 = unchanged).");
+            _flip = config.Bind(Section, "RetournerImage", true, "Flips the picture vertically (change it if the survivor shows upside down).");
             _hideBehindDecor = config.Bind(Section, "CacheParDecor", true,
-                "Le survivant est cache par les murs, rochers et objets de Skyrim places devant lui (d'apres le decor recopie).");
+                "The survivor is hidden by Skyrim walls, rocks and objects in front of it (based on the copied scenery).");
             _decorMargin = config.Bind(Section, "MargeDecor", 0.25f,
-                "Marge (m) : un mur doit etre au moins a cette distance devant le survivant pour le cacher (evite de couper les pieds dans le sol).");
+                "Margin (m): a wall must be at least this far in front of the survivor to hide it (avoids cutting the feet into the ground).");
             _maxHeight = config.Bind(Section, "TailleMax", 2.0f,
-                "Hauteur maximum du survivant a l'ecran (metres). Un plus grand (MUL-T, REX, Acrid) est ramene a cette taille. 10 = taille de RoR2.");
+                "Maximum on-screen height of the survivor (meters). A bigger one (MUL-T, REX, Acrid) is scaled down to this size. 10 = RoR2 size.");
         }
 
         // camera : position de la caméra de Skyrim dans RoR2 ; forward : sa direction ; frustum : bords de l'image

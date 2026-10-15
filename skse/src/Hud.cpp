@@ -1,4 +1,5 @@
 #include "Hud.h"
+#include "Lang.h"
 #include "ThirdPerson.h"
 
 #include "Bridge.h"
@@ -150,10 +151,15 @@ namespace skyrimror2::Hud
 				{ "ClicGauche", "M1" }, { "ClicDroit", "M2" }, { "ClicMilieu", "M3" },
 				{ "MajGauche", "Maj" }, { "MajDroit", "Maj" }, { "CtrlGauche", "Ctrl" }, { "CtrlDroit", "Ctrl" },
 				{ "AltGauche", "Alt" }, { "AltDroit", "Alt" }, { "Espace", "Esp" },
+				// 0.74 : les noms anglais
+				{ "LeftClick", "M1" }, { "RightClick", "M2" }, { "MiddleClick", "M3" }, { "Mouse1", "M1" }, { "Mouse2", "M2" },
+				{ "Mouse3", "M3" }, { "LeftShift", "Shift" }, { "RightShift", "Shift" }, { "LShift", "Shift" }, { "RShift", "Shift" },
+				{ "LeftCtrl", "Ctrl" }, { "RightCtrl", "Ctrl" }, { "LCtrl", "Ctrl" }, { "RCtrl", "Ctrl" }, { "LeftAlt", "Alt" },
+				{ "RightAlt", "Alt" }, { "LAlt", "Alt" }, { "RAlt", "Alt" }, { "Space", "Space" },
 			};
 			for (const auto& [from, to] : kShort) {
 				if (_stricmp(a_name.c_str(), from) == 0) {
-					return to;
+					return Lang::T(to);  // "Maj" -> "Shift" en anglais...
 				}
 			}
 			return a_name;
@@ -711,9 +717,9 @@ namespace skyrimror2::Hud
 				height += rows[i];
 			}
 			a_draw->AddRectFilled(min, ImVec2(min.x + width, min.y + height), Color(14, 16, 22, 215), 6.0f * s);
-			const std::string pageText = g_listPages > 1 ? std::format("   page {}/{} ({} : suite)", g_listPage + 1, g_listPages, Config::Get().KeyName(Action::kItems)) : std::string();
+			const std::string pageText = g_listPages > 1 ? Lang::F("   page {}/{} ({} : suite)", g_listPage + 1, g_listPages, Config::Get().KeyName(Action::kItems)) : std::string();
 			Text(a_draw, 22.0f * s, ImVec2(min.x + pad, min.y + pad), Color(240, 240, 245),
-				g_listed.empty() ? std::string("Aucun objet RoR2") : std::format("Objets RoR2 ({}){}", g_listed.size(), pageText));
+				g_listed.empty() ? std::string(Lang::T("Aucun objet RoR2")) : Lang::F("Objets RoR2 ({}){}", g_listed.size(), pageText));
 
 			float y = min.y + top;
 			for (std::size_t i = first; i < last; ++i) {
@@ -723,7 +729,7 @@ namespace skyrimror2::Hud
 				a_draw->AddRectFilled(iconMin, ImVec2(iconMin.x + icon, iconMin.y + icon), Color(30, 32, 40, 200), 3.0f * s);
 				Image(a_draw, GetIcon(item.icon.c_str()), iconMin, ImVec2(iconMin.x + icon, iconMin.y + icon));
 				const float  textX = iconMin.x + icon + pad;
-				const std::string title = item.count <= 0 ? item.name + "  (equipement)" : (item.count > 1 ? std::format("{}  x{}", item.name, item.count) : item.name);
+				const std::string title = item.count <= 0 ? item.name + Lang::T("  (equipement)") : (item.count > 1 ? std::format("{}  x{}", item.name, item.count) : item.name);
 				Text(a_draw, titleSize, ImVec2(textX, y), item.count <= 0 ? Color(255, 170, 60) : Color(250, 250, 250), title);
 				a_draw->AddText(font, bodySize, ImVec2(textX, y + titleSize + 4.0f * s), Color(200, 205, 215), item.description.c_str(), nullptr, textWidth);
 				y += row + pad;
@@ -752,10 +758,10 @@ namespace skyrimror2::Hud
 			const float margin = 40.0f * s;
 
 			// --- En haut a gauche : l'or ---
-			Text(draw, 34.0f * s, ImVec2(margin, margin * 0.7f), Color(255, 214, 90), std::format("{} septims", Loot::Septims()));
+			Text(draw, 34.0f * s, ImVec2(margin, margin * 0.7f), Color(255, 214, 90), Lang::F("{} septims", Loot::Septims()));
 			// A cote : la difficulte et les pieces lunaires.
 			Text(draw, 20.0f * s, ImVec2(margin + 260.0f * s, margin * 0.7f + 10.0f * s), Color(210, 215, 225),
-				std::format("Difficulte {:.1f}   Pieces lunaires {}   ({} : liste des objets, {} : journal)", Loot::Difficulty(), Loot::Coins(),
+				Lang::F("Difficulte {:.1f}   Pieces lunaires {}   ({} : liste des objets, {} : journal)", Loot::Difficulty(), Loot::Coins(),
 					Config::Get().KeyName(Action::kItems), Config::Get().KeyName(Action::kJournal)));
 
 			// Sous la difficulte : l'autel RoR2 du lieu et sa distance.
@@ -776,9 +782,9 @@ namespace skyrimror2::Hud
 					const float  barHeight = 16.0f * s;
 					const ImVec2 barMin((a_width - barWidth) * 0.5f, a_height * 0.62f);
 					const ImVec2 barMax(barMin.x + barWidth, barMin.y + barHeight);
-					std::string  label = Coop::ReviveLabel();
+					std::string  label = Lang::Packed(Coop::ReviveLabel());
 					if (label.empty()) {
-						label = downed ? "A terre : un coequipier peut te relever" : "Relevement";
+						label = downed ? Lang::T("A terre : un coequipier peut te relever") : Lang::T("Relevement");
 					}
 					Text(draw, 24.0f * s, ImVec2(a_width * 0.5f, barMin.y - 18.0f * s), downed ? Color(255, 120, 110) : Color(140, 230, 140), label, true);
 					if (revive >= 0.0f) {
@@ -797,7 +803,7 @@ namespace skyrimror2::Hud
 				draw->AddRectFilled(barMin, barMax, Color(20, 22, 28, 170), 3.0f * s);
 				draw->AddRectFilled(barMin, ImVec2(barMin.x + barWidth * std::clamp(charge, 0.0f, 1.0f), barMax.y), Color(200, 60, 60, 235), 3.0f * s);
 				Text(draw, 20.0f * s, ImVec2(a_width * 0.5f, barMin.y - 14.0f * s), Color(240, 235, 235),
-					std::format("Charge du coffre : {:.0f} %", charge * 100.0f), true);
+					Lang::F("Charge du coffre : {:.0f} %", charge * 100.0f), true);
 			}
 
 			// --- Sous l'or : les objets ---
@@ -836,7 +842,7 @@ namespace skyrimror2::Hud
 			// Nom du survivant et niveau, au-dessus de la barre.
 			char name[bridge::kIconNameSize + 1]{};
 			std::memcpy(name, g_hud.name, bridge::kIconNameSize);
-			const std::string title = name[0] ? std::format("{}   NIV. {}", name, g_hud.level) : std::format("NIV. {}", g_hud.level);
+			const std::string title = name[0] ? Lang::F("{}   NIV. {}", name, g_hud.level) : Lang::F("NIV. {}", g_hud.level);
 			Text(draw, 22.0f * s, ImVec2(barMin.x, barMin.y - 30.0f * s), Color(235, 235, 240), title);
 
 			// Le portrait du survivant, a gauche de la barre.
@@ -987,7 +993,7 @@ namespace skyrimror2::Hud
 				const float box = 30.0f * s;
 				const float gap = 8.0f * s;
 				const float start = a_width * 0.5f - (total * box + (total - 1) * gap) * 0.5f;
-				Text(a_draw, 17.0f * s, ImVec2(a_width * 0.5f, min.y - 13.0f * s), Color(235, 235, 240), "Meditation", true);
+				Text(a_draw, 17.0f * s, ImVec2(a_width * 0.5f, min.y - 13.0f * s), Color(235, 235, 240), Lang::T("Meditation"), true);
 				for (int i = 0; i < total; ++i) {
 					const ImVec2 p0(start + i * (box + gap), min.y);
 					const ImVec2 p1(p0.x + box, p0.y + box);
@@ -1015,7 +1021,7 @@ namespace skyrimror2::Hud
 				return;
 			}
 			if (label[0]) {
-				Text(a_draw, 17.0f * s, ImVec2(a_width * 0.5f, min.y - 13.0f * s), Color(235, 235, 240), label, true);
+				Text(a_draw, 17.0f * s, ImVec2(a_width * 0.5f, min.y - 13.0f * s), Color(235, 235, 240), Lang::Packed(label), true);
 			}
 			if (special.kind == 3) {  // des charges : une pastille par charge
 				const int   total = std::clamp(special.maxCharges, 1, 12);
@@ -1074,16 +1080,66 @@ namespace skyrimror2::Hud
 			io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 
 			// Une police lisible de Windows (sinon celle d'ImGui, plus petite).
+			// 0.74 : avec les lettres de la langue de Skyrim (accents d'Europe de l'Est, cyrillique, japonais, chinois).
 			wchar_t windows[MAX_PATH]{};
 			::GetWindowsDirectoryW(windows, MAX_PATH);
-			for (const wchar_t* name : { L"segoeuib.ttf", L"arialbd.ttf", L"segoeui.ttf" }) {
-				const auto path = std::filesystem::path(windows) / L"Fonts" / name;
+			const auto fontPath = [&](const wchar_t* a_name) {
+				const auto      path = std::filesystem::path(windows) / L"Fonts" / a_name;
 				std::error_code error;
-				if (std::filesystem::exists(path, error)) {
-					g_font = io.Fonts->AddFontFromFileTTF(path.string().c_str(), 48.0f);
+				return std::filesystem::exists(path, error) ? path.string() : std::string();
+			};
+			static ImVector<ImWchar> latinRanges;
+			{
+				ImFontGlyphRangesBuilder builder;
+				builder.AddRanges(io.Fonts->GetGlyphRangesDefault());
+				static const ImWchar kExtra[]{
+					0x0100, 0x017F,  // Latin etendu A (polonais, tcheque...)
+					0x2010, 0x205E,  // tirets, guillemets, points de suspension
+					0x2190, 0x2193,  // fleches
+					0,
+				};
+				builder.AddRanges(kExtra);
+				if (Lang::Writing() == Lang::Script::kCyrillic) {
+					builder.AddRanges(io.Fonts->GetGlyphRangesCyrillic());
+				}
+				builder.BuildRanges(&latinRanges);
+			}
+			for (const wchar_t* name : { L"segoeuib.ttf", L"arialbd.ttf", L"segoeui.ttf" }) {
+				if (const auto path = fontPath(name); !path.empty()) {
+					g_font = io.Fonts->AddFontFromFileTTF(path.c_str(), 48.0f, nullptr, latinRanges.Data);
 					if (g_font) {
 						break;
 					}
+				}
+			}
+			// Japonais / chinois : une police d'Asie de Windows ajoutee a la premiere (les lettres courantes, plus
+			// toutes celles des textes du mod).
+			if (g_font && (Lang::Writing() == Lang::Script::kJapanese || Lang::Writing() == Lang::Script::kChinese)) {
+				const bool               japanese = Lang::Writing() == Lang::Script::kJapanese;
+				static ImVector<ImWchar> asianRanges;
+				ImFontGlyphRangesBuilder builder;
+				builder.AddRanges(japanese ? io.Fonts->GetGlyphRangesJapanese() : io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+				for (const auto& text : Lang::AllTexts()) {
+					builder.AddText(text.c_str());
+				}
+				builder.BuildRanges(&asianRanges);
+				ImFontConfig merge;
+				merge.MergeMode = true;
+				io.Fonts->TexDesiredWidth = 4096;
+				const std::initializer_list<const wchar_t*> japaneseFonts{ L"YuGothB.ttc", L"meiryob.ttc", L"meiryo.ttc", L"msgothic.ttc" };
+				const std::initializer_list<const wchar_t*> chineseFonts{ L"msjhbd.ttc", L"msjh.ttc", L"msyhbd.ttc", L"msyh.ttc", L"simhei.ttf" };
+				bool added = false;
+				for (const wchar_t* name : japanese ? japaneseFonts : chineseFonts) {
+					if (const auto path = fontPath(name); !path.empty()) {
+						added = io.Fonts->AddFontFromFileTTF(path.c_str(), 48.0f, &merge, asianRanges.Data) != nullptr;
+						if (added) {
+							logger::info("HUD : police {} pour le {}", path, japanese ? "japonais" : "chinois");
+							break;
+						}
+					}
+				}
+				if (!added) {
+					logger::warn("HUD : aucune police japonaise/chinoise trouvee dans Windows\\Fonts");
 				}
 			}
 

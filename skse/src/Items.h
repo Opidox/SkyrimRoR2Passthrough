@@ -31,7 +31,8 @@ namespace skyrimror2::Items
 		kTierCount = 9,
 	};
 
-	void Install();       // donnees du jeu chargees : formes, ecoute des evenements
+	void Install();         // donnees du jeu chargees : formes, ecoute des evenements
+	void TranslateForms();  // 0.74 : noms du .esp dans la langue de Skyrim
 	void LoadSettings();  // relit [ObjetsSkyrim]
 	bool Enabled();       // objets dans l'inventaire de Skyrim
 	bool WakeOnDeath();   // mort sans rechargement
@@ -56,7 +57,7 @@ namespace skyrimror2::Items
 	// Un objet trouvable au hasard de ce rang (vide si le catalogue n'est pas encore connu).
 	std::string RandomFindable(int a_tier);
 	std::string DisplayName(const std::string& a_item);  // "Seringue du soldat"
-	const char* TierWord(int a_tier);                    // "blanc", "vert"...
+	std::string TierWord(int a_tier);                    // "blanc", "vert"...
 
 	// 0.71 : le Bazar lunaire de Newt (porte bleue apres un coffre de boss). a_key : la porte (stock propre a elle).
 	void OpenPortalBazaar(std::uint32_t a_key);

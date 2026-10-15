@@ -191,7 +191,7 @@ namespace SkyrimRoR2
                 object token = skill.GetType().GetField(field, flags)?.GetValue(skill);
                 if (token is string t && t.Length > 0)
                 {
-                    string text = CleanName(Language.GetString(t));
+                    string text = CleanName(SkyrimLanguage.Text(t));
                     if (text.Length > 0 && text != t) return text;
                 }
             }
@@ -319,7 +319,7 @@ namespace SkyrimRoR2
                         for (int i = 0; i < family.variants.Length; i++)
                         {
                             SkillDef skill = family.variants[i].skillDef;
-                            string name = skill != null ? CleanName(Language.GetString(skill.skillNameToken)) : "";
+                            string name = skill != null ? CleanName(SkyrimLanguage.Text(skill.skillNameToken)) : "";
                             if (name.Length == 0) name = "Variante " + (i + 1);
                             lines.Add($"{def.cachedName}|{slot}|{i}|{name}");
                         }
@@ -334,7 +334,7 @@ namespace SkyrimRoR2
                         for (int i = 0; i < family.variants.Length; i++)
                         {
                             SkillDef skill = family.variants[i].skillDef;
-                            string name = skill != null ? CleanName(Language.GetString(skill.skillNameToken)) : "";
+                            string name = skill != null ? CleanName(SkyrimLanguage.Text(skill.skillNameToken)) : "";
                             if (name.Length == 0) name = "Variante " + (i + 1);
                             lines.Add($"{def.cachedName}|{5 + k}|{i}|{name}");
                         }
@@ -344,7 +344,7 @@ namespace SkyrimRoR2
                     SkinDef[] skins = SkinCatalog.GetBodySkinDefs(BodyCatalog.FindBodyIndex(def.bodyPrefab));
                     for (int i = 0; skins != null && i < skins.Length; i++)
                     {
-                        string name = skins[i] != null ? CleanName(Language.GetString(skins[i].nameToken)) : "";
+                        string name = skins[i] != null ? CleanName(SkyrimLanguage.Text(skins[i].nameToken)) : "";
                         if (name.Length == 0) name = "Skin " + (i + 1);
                         lines.Add($"{def.cachedName}|4|{i}|{name}");
                     }

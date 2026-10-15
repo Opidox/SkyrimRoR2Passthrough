@@ -93,11 +93,9 @@ namespace SkyrimRoR2
         {
             _log = log;
             _enabled = ConfigMove.Bind(config, "Monde", "4 - Effets", "EffetsRoR2", true,
-                "Recopie dans Skyrim les vrais effets de RoR2 (particules, trainees, lasers) avec leurs textures et leurs couleurs. " +
-                "Une nouvelle sorte d'effet apparait au lancement suivant de Skyrim (le temps de la convertir).");
+                "Copies the real RoR2 effects into Skyrim (particles, trails, lasers) with their textures and colors. A new kind of effect appears at the next Skyrim launch (time to convert it).");
             _skyrimBeams = ConfigMove.Bind(config, "Monde", "4 - Effets", "LasersSkyrim", true,
-                "0.73.5 (essai) : les lasers de RoR2 sont dessines avec l'apparence des sorts de Skyrim (foudre, feu, givre, drain rouge, " +
-                "soin vert), selon leur couleur. false = les lasers recopies de RoR2, comme avant.");
+                "(Trial) RoR2 lasers are drawn with the look of Skyrim spells (lightning, fire, frost, red drain, green healing), depending on their color. false = lasers copied from RoR2, as before.");
         }
 
         private readonly ConfigEntry<bool> _skyrimBeams;

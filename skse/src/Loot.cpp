@@ -1,4 +1,5 @@
 #include "Loot.h"
+#include "Lang.h"
 
 #include "Altars.h"
 #include "Bridge.h"
@@ -177,8 +178,11 @@ namespace skyrimror2::Loot
 
 		bool IsDwemer(RE::TESObjectREFR* a_ref, RE::PlayerCharacter* a_player)
 		{
-			auto*             base = a_ref->GetBaseObject();
-			const std::string name = Lower(base && base->GetName() ? base->GetName() : "");
+			auto*       base = a_ref->GetBaseObject();
+			std::string name = Lower(base && base->GetName() ? base->GetName() : "");
+			if (auto* model = base ? base->As<RE::TESModel>() : nullptr; model && model->GetModel()) {
+				name += "|" + Lower(model->GetModel());  // 0.74 : le meme dans toutes les langues
+			}
 			for (const char* word : { "dwemer", "dwarven", "dwenmer", "dwem" }) {
 				if (name.find(word) != std::string::npos) {
 					return true;
@@ -222,8 +226,12 @@ namespace skyrimror2::Loot
 			if (IsBossContainer(a_ref)) {
 				return Size::kBoss;
 			}
-			auto*             base = a_ref->GetBaseObject();
-			const std::string name = Lower(base && base->GetName() ? base->GetName() : "");
+			auto*       base = a_ref->GetBaseObject();
+			std::string name = Lower(base && base->GetName() ? base->GetName() : "");
+			// 0.74 : le chemin du modele ne change pas avec la langue de Skyrim ("clutter\\containers\\chest01.nif").
+			if (auto* model = base ? base->As<RE::TESModel>() : nullptr; model && model->GetModel()) {
+				name += "|" + Lower(model->GetModel());
+			}
 			for (const char* word : { "sac", "bourse", "sacoche", "sack", "satchel", "pouch", "purse" }) {
 				if (name.find(word) != std::string::npos) {
 					return Size::kSmall;
@@ -251,17 +259,17 @@ namespace skyrimror2::Loot
 			}
 		}
 
-		const char* SizeName(Size a_size)
+		std::string SizeName(Size a_size)
 		{
 			switch (a_size) {
 			case Size::kSmall:
-				return "petit contenant";
+				return Lang::T("petit contenant");
 			case Size::kChest:
-				return "coffre";
+				return Lang::T("coffre");
 			case Size::kBoss:
-				return "coffre du boss";
+				return Lang::T("coffre du boss");
 			default:
-				return "contenant";
+				return Lang::T("contenant");
 			}
 		}
 
@@ -421,10 +429,10 @@ namespace skyrimror2::Loot
 					const Size size = Classify(ref);
 					const int  price = ScaledPrice(BasePrice(size));
 					if (size == Size::kBoss) {
-						text = g_chargePaid.contains(ref->GetFormID()) ? std::string("Charge du coffre du boss (deja payee)") :
-						                                                    fmt::format("Charge du coffre du boss : {} septims", price);
+						text = g_chargePaid.contains(ref->GetFormID()) ? std::string(Lang::T("Charge du coffre du boss (deja payee)")) :
+						                                                    Lang::F("Charge du coffre du boss : {} septims", price);
 					} else if (price > 0) {
-						text = fmt::format("{} septims", price);
+						text = Lang::F("{} septims", price);
 					}
 				}
 			}
@@ -485,7 +493,7 @@ namespace skyrimror2::Loot
 			++g_charge.waves;
 			logger::info("Objets : charge : vague {} ({} renfort(s))", g_charge.waves, spawned);
 			if (spawned > 0) {
-				Show("Des renforts arrivent !");
+				Show(Lang::T("Des renforts arrivent !"));
 			}
 		}
 
@@ -497,7 +505,7 @@ namespace skyrimror2::Loot
 			g_charge.center = a_chest->GetPosition();
 			g_charge.sinceWave = g_waveSeconds - 3.0f;  // premiere vague tout de suite
 			CollectSources(a_player, a_chest);
-			Show(fmt::format("Charge du coffre ! Reste a moins de {:.0f} m pendant {:.0f} s", g_chargeRadius, g_chargeSeconds));
+			Show(Lang::F("Charge du coffre ! Reste a moins de {:.0f} m pendant {:.0f} s", g_chargeRadius, g_chargeSeconds));
 		}
 
 		void FinishCharge(RE::TESObjectREFR* a_chest)
@@ -532,7 +540,7 @@ namespace skyrimror2::Loot
 			g_charge.active = false;
 			g_chargeShown = -1.0f;
 			logger::info("Objets : charge terminee ({} objet(s) en plus), {} donjon(s) termine(s)", extra, done);
-			Show(fmt::format("Coffre charge ! Difficulte : {:.1f}", g_difficulty.load() + 1.0f));
+			Show(Lang::F("Coffre charge ! Difficulte : {:.1f}", g_difficulty.load() + 1.0f));
 		}
 
 		float g_remoteProgressScratch = 0.0f;
@@ -558,7 +566,7 @@ namespace skyrimror2::Loot
 			g_charge.progress = progress;
 			g_chargePaid.insert(chest);
 			logger::info("Objets : charge du coffre {:08X} d'un coequipier suivie ({:.0f} %)", chest, progress * 100.0f);
-			Show(fmt::format("Un coequipier charge le coffre du boss : reste a moins de {:.0f} m pour avoir ton objet", g_chargeRadius));
+			Show(Lang::F("Un coequipier charge le coffre du boss : reste a moins de {:.0f} m pour avoir ton objet", g_chargeRadius));
 		}
 
 		// 0.70 (coop) : les contenants ouverts par un coequipier sont vides ici (sauf objets de quete), quand ils sont charges.
@@ -662,14 +670,14 @@ namespace skyrimror2::Loot
 			if (size == Size::kBoss) {
 				CloseContainer();
 				if (g_charge.active && g_charge.chest == ref->GetFormID()) {
-					Show(fmt::format("Charge en cours : {:.0f} %", g_charge.progress * 100.0f));
+					Show(Lang::F("Charge en cours : {:.0f} %", g_charge.progress * 100.0f));
 					return;
 				}
 				if (!g_chargePaid.contains(ref->GetFormID())) {
 					const int price = ScaledPrice(BasePrice(size));
 					const auto gold = GoldCount(player);
 					if (price > 0 && gold < price) {
-						Show(fmt::format("Il faut {} septims pour charger le coffre du boss (tu en as {})", price, gold));
+						Show(Lang::F("Il faut {} septims pour charger le coffre du boss (tu en as {})", price, gold));
 						return;
 					}
 					if (price > 0) {
@@ -688,7 +696,7 @@ namespace skyrimror2::Loot
 				const auto gold = GoldCount(player);
 				if (gold < price) {
 					CloseContainer();
-					Show(fmt::format("Il faut {} septims pour ouvrir ce {} (tu en as {})", price, SizeName(size), gold));
+					Show(Lang::F("Il faut {} septims pour ouvrir ce {} (tu en as {})", price, SizeName(size), gold));
 					return;
 				}
 				if (auto* septim = RE::TESForm::LookupByID<RE::TESBoundObject>(0xF)) {
@@ -717,7 +725,7 @@ namespace skyrimror2::Loot
 			logger::info("Objets : {} {:08X} ouvert ({} septims){}", SizeName(size), ref->GetFormID(), price,
 				tier >= 0 ? fmt::format(", objet RoR2 de rang {} demande", tier) : "");
 			if (price > 0 && tier < 0) {
-				Show(fmt::format("-{} septims", price));
+				Show(Lang::F("-{} septims", price));
 			}
 		}
 
@@ -811,7 +819,7 @@ namespace skyrimror2::Loot
 					const int elite = Combat::EliteType(actor->GetFormID());
 					if (elite > 0 && std::uniform_int_distribution<int>(1, g_aspectOneIn)(Random()) == 1) {
 						Bridge::Get().WriteLoot(kAspect, elite);
-						Show("L'elite lache son aspect !");
+						Show(Lang::T("L'elite lache son aspect !"));
 						logger::info("Objets : elite {:08X} tuee : aspect {}", actor->GetFormID(), elite);
 					}
 				}
@@ -819,7 +827,7 @@ namespace skyrimror2::Loot
 				// Pieces lunaires : rarement, sur les ennemis tues par toi (ou tes allies RoR2).
 				if (byPlayer && Roll(g_coinChance)) {
 					const int coins = ++g_coins;
-					Show(fmt::format("Piece lunaire ! ({} en tout)", coins));
+					Show(Lang::F("Piece lunaire ! ({} en tout)", coins));
 				}
 				return RE::BSEventNotifyControl::kContinue;
 			}
@@ -955,7 +963,7 @@ namespace skyrimror2::Loot
 			}
 			logger::info("Attente de RoR2 : {} apres {:.0f} s", ready ? "RoR2 en partie, on y va" : "trop long, on joue sans attendre",
 				std::chrono::duration<float>(now - g_holdSince).count());
-			Show(ready ? "RoR2 est pret !" : "RoR2 ne repond pas : la partie reprend sans lui");
+			Show(ready ? Lang::T("RoR2 est pret !") : Lang::T("RoR2 ne repond pas : la partie reprend sans lui"));
 			return;
 		}
 		if (timer) {
@@ -963,7 +971,7 @@ namespace skyrimror2::Loot
 		}
 		if (now >= g_holdNextMessage) {
 			g_holdNextMessage = now + std::chrono::seconds(4);
-			Show(fmt::format("En attente de RoR2... ({:.0f} s)", std::chrono::duration<float>(now - g_holdSince).count()));
+			Show(Lang::F("En attente de RoR2... ({:.0f} s)", std::chrono::duration<float>(now - g_holdSince).count()));
 		}
 	}
 
@@ -1189,7 +1197,7 @@ namespace skyrimror2::Loot
 				g_lastPickup = note.sequence;
 			} else if (note.sequence != g_lastPickup) {
 				g_lastPickup = note.sequence;
-				Show(fmt::format("Objet RoR2 : {}", note.name));
+				Show(Lang::F("Objet RoR2 : {}", Lang::Packed(note.name)));
 			}
 		} else if (!g_goldStarted) {
 			g_goldStarted = true;  // RoR2 n'a encore rien gagne : on part de zero

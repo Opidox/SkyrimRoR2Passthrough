@@ -33,10 +33,9 @@ namespace SkyrimRoR2
         {
             _log = log;
             _enabled = ConfigMove.Bind(config, "Jeu", "2 - Jeu", "NiveauSuitSkyrim", true,
-                "Le niveau RoR2 du survivant suit le niveau de ton personnage Skyrim (les ennemis ne donnent plus d'experience RoR2, " +
-                "et la barre d'experience RoR2 est cachee).");
+                "The survivor's RoR2 level follows your Skyrim character's level (enemies no longer give RoR2 experience, and the RoR2 experience bar is hidden).");
             _ratio = ConfigMove.Bind(config, "Jeu", "2 - Jeu", "NiveauxSkyrimParNiveau", 2,
-                "Nombre de niveaux Skyrim pour un niveau RoR2 (2 : niveau Skyrim 30 = niveau RoR2 15).");
+                "Number of Skyrim levels per RoR2 level (2: Skyrim level 30 = RoR2 level 15).");
             _setLevel = AccessTools.Method(typeof(TeamManager), "SetTeamLevel", new[] { typeof(TeamIndex), typeof(uint) });
             _setExperience = AccessTools.Method(typeof(TeamManager), "SetTeamExperience", new[] { typeof(TeamIndex), typeof(ulong) });
             _experienceFor = AccessTools.Method(typeof(TeamManager), "GetExperienceForLevel", new[] { typeof(uint) });

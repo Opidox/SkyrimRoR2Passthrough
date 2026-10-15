@@ -36,8 +36,7 @@ namespace SkyrimRoR2
         {
             _log = log;
             _enabled = ConfigMove.Bind(config, "Monde", "4 - Effets", "EffetsSkyrim", true,
-                "Secours : rejoue avec un effet de Skyrim les effets de RoR2 (explosions, flammes, eclairs, gel, soins...) " +
-                "qui ne sont pas encore recopies avec leurs vraies particules (EffetsRoR2).");
+                "Fallback: replays with a Skyrim effect the RoR2 effects (explosions, flames, lightning, frost, healing...) that are not yet copied with their real particles (EffetsRoR2).");
         }
 
         public bool Enabled => _enabled.Value;
