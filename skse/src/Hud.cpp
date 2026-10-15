@@ -1088,6 +1088,9 @@ namespace skyrimror2::Hud
 				std::error_code error;
 				return std::filesystem::exists(path, error) ? path.string() : std::string();
 			};
+			// ImGui 1.92 et plus : les lettres sont chargees a la demande, pas besoin de liste.
+			const ImWchar* latin = nullptr;
+#if IMGUI_VERSION_NUM < 19200
 			static ImVector<ImWchar> latinRanges;
 			{
 				ImFontGlyphRangesBuilder builder;
@@ -1104,9 +1107,11 @@ namespace skyrimror2::Hud
 				}
 				builder.BuildRanges(&latinRanges);
 			}
+			latin = latinRanges.Data;
+#endif
 			for (const wchar_t* name : { L"segoeuib.ttf", L"arialbd.ttf", L"segoeui.ttf" }) {
 				if (const auto path = fontPath(name); !path.empty()) {
-					g_font = io.Fonts->AddFontFromFileTTF(path.c_str(), 48.0f, nullptr, latinRanges.Data);
+					g_font = io.Fonts->AddFontFromFileTTF(path.c_str(), 48.0f, nullptr, latin);
 					if (g_font) {
 						break;
 					}
@@ -1116,6 +1121,8 @@ namespace skyrimror2::Hud
 			// toutes celles des textes du mod).
 			if (g_font && (Lang::Writing() == Lang::Script::kJapanese || Lang::Writing() == Lang::Script::kChinese)) {
 				const bool               japanese = Lang::Writing() == Lang::Script::kJapanese;
+				const ImWchar*           asian = nullptr;
+#if IMGUI_VERSION_NUM < 19200
 				static ImVector<ImWchar> asianRanges;
 				ImFontGlyphRangesBuilder builder;
 				builder.AddRanges(japanese ? io.Fonts->GetGlyphRangesJapanese() : io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
@@ -1123,15 +1130,16 @@ namespace skyrimror2::Hud
 					builder.AddText(text.c_str());
 				}
 				builder.BuildRanges(&asianRanges);
+				asian = asianRanges.Data;
+#endif
 				ImFontConfig merge;
 				merge.MergeMode = true;
-				io.Fonts->TexDesiredWidth = 4096;
 				const std::initializer_list<const wchar_t*> japaneseFonts{ L"YuGothB.ttc", L"meiryob.ttc", L"meiryo.ttc", L"msgothic.ttc" };
 				const std::initializer_list<const wchar_t*> chineseFonts{ L"msjhbd.ttc", L"msjh.ttc", L"msyhbd.ttc", L"msyh.ttc", L"simhei.ttf" };
 				bool added = false;
 				for (const wchar_t* name : japanese ? japaneseFonts : chineseFonts) {
 					if (const auto path = fontPath(name); !path.empty()) {
-						added = io.Fonts->AddFontFromFileTTF(path.c_str(), 48.0f, &merge, asianRanges.Data) != nullptr;
+						added = io.Fonts->AddFontFromFileTTF(path.c_str(), 48.0f, &merge, asian) != nullptr;
 						if (added) {
 							logger::info("HUD : police {} pour le {}", path, japanese ? "japonais" : "chinois");
 							break;

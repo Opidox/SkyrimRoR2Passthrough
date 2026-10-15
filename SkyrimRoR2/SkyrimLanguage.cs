@@ -35,7 +35,7 @@ namespace SkyrimRoR2
         public static void Init(ManualLogSource log) { _log = log; }
 
         private static string FilePath() =>
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SkyrimRoR2", "langue.txt");
+            System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SkyrimRoR2", "langue.txt");
 
         // La langue de RoR2 à utiliser (relu au plus toutes les 5 s, si le fichier a changé).
         private static string Current()
@@ -46,11 +46,11 @@ namespace SkyrimRoR2
             try
             {
                 string path = FilePath();
-                if (!File.Exists(path)) return _ror2;
-                DateTime time = File.GetLastWriteTimeUtc(path);
+                if (!System.IO.File.Exists(path)) return _ror2;
+                DateTime time = System.IO.File.GetLastWriteTimeUtc(path);
                 if (time == _fileTime) return _ror2;
                 _fileTime = time;
-                string skyrim = File.ReadAllText(path).Trim().ToLowerInvariant();
+                string skyrim = System.IO.File.ReadAllText(path).Trim().ToLowerInvariant();
                 if (skyrim == _skyrim) return _ror2;
                 _skyrim = skyrim;
                 _ror2 = Choose(skyrim);
