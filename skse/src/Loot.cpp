@@ -1108,7 +1108,7 @@ namespace skyrimror2::Loot
 		g_portalOneIn = std::clamp(ReadInt("Objets", "BazarUnSur", 20, ini), 0, 100000);
 		g_coinChance = std::clamp(ReadInt("Objets", "ChancePieceLunaire", 3, ini), 0, 100);
 		g_goldRatio = std::clamp(ReadFloat("Objets", "SeptimsParOrRoR2", 0.5f, ini), 0.0f, 10.0f);
-		g_holdSeconds = std::clamp(ReadInt("Lancement", "AttendreRoR2", 90, ini), 0, 600);
+		g_holdSeconds = std::clamp(ReadInt("Lancement", "AttendreRoR2", 180, ini), 0, 600);
 		g_priceGrowth = std::clamp(ReadFloat("Difficulte", "HaussePrix", 0.15f, ini), 0.0f, 2.0f);
 		g_dayWeight = std::clamp(ReadFloat("Difficulte", "ParJour", 0.25f, ini), 0.0f, 5.0f);
 		g_chargeSeconds = std::clamp(ReadFloat("Difficulte", "DureeCharge", 60.0f, ini), 5.0f, 600.0f);

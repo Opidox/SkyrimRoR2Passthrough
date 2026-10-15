@@ -17,6 +17,8 @@
 #include "Solids.h"
 #include "Terrain.h"
 
+#include <mutex>
+
 // Le joueur Skyrim suit le survivant RoR2.
 //
 // Premiere version : on ne reprend de RoR2 que la vitesse HORIZONTALE du survivant
@@ -71,7 +73,42 @@ namespace skyrimror2::Movement
 		}
 
 		// Au-dela de ce delai sans nouvelle image de RoR2, on rend la main a Skyrim.
-		constexpr auto kTimeout = 500ms;
+		// 0.74 : 1,5 s (au lieu de 0,5) : sur un PC plus lent, RoR2 a des a-coups (conversion des modeles au premier
+		// lancement) et le lien se coupait / revenait en boucle.
+		constexpr auto kTimeout = 1500ms;
+
+		// 0.74 : la camera de Skyrim, lue sur le fil du jeu (a chaque image du joueur) et recopiee ici. Avant, le fil
+		// qui ecrit au pont la lisait lui-meme pendant que le jeu la changeait : crash (Skyrim 1.7, chargements).
+		struct CameraCopy
+		{
+			bool  valid = false;
+			float x = 0.0f, y = 0.0f, z = 0.0f;
+			float left = 0.0f, right = 0.0f, top = 0.0f, bottom = 0.0f, nearPlane = 0.0f;
+			bool  ortho = false;
+		};
+		std::mutex g_cameraLock;
+		CameraCopy g_camera;
+
+		void CopyCamera()
+		{
+			CameraCopy copy;
+			auto*      main = RE::Main::GetSingleton();
+			if (auto* camera = main ? RE::Main::WorldRootCamera() : nullptr) {
+				const auto& frustum = camera->GetRuntimeData2().viewFrustum;
+				copy.valid = true;
+				copy.x = camera->world.translate.x;
+				copy.y = camera->world.translate.y;
+				copy.z = camera->world.translate.z;
+				copy.left = frustum.fLeft;
+				copy.right = frustum.fRight;
+				copy.top = frustum.fTop;
+				copy.bottom = frustum.fBottom;
+				copy.nearPlane = frustum.fNear;
+				copy.ortho = frustum.bOrtho;
+			}
+			std::scoped_lock lock(g_cameraLock);
+			g_camera = copy;
+		}
 
 		// Escaliers et pentes : vitesse de montee maximale (m/s) quand le survivant ne saute pas.
 		constexpr float kMaxClimbRatio = 0.7f;   // ~35 degres de pente
@@ -420,6 +457,10 @@ namespace skyrimror2::Movement
 			{
 				func(a_this, a_delta);
 				try {
+					CopyCamera();
+				} catch (...) {
+				}
+				try {
 					Follow(a_this);
 				} catch (const std::exception& e) {
 					logger::error("Suivi du survivant : {}", e.what());
@@ -498,24 +539,28 @@ namespace skyrimror2::Movement
 		a_command.ceilingHeight = g_ceiling;
 
 		// La camera de Skyrim (position et champ de vision) : RoR2 filme ses allies et ses tirs exactement d'ici.
-		if (auto* camera = RE::Main::WorldRootCamera()) {
-			const auto& frustum = camera->GetRuntimeData2().viewFrustum;
+		CameraCopy camera;
+		{
+			std::scoped_lock lock(g_cameraLock);
+			camera = g_camera;
+		}
+		if (camera.valid) {
 			float scale = 1.0f;
-			if (!frustum.bOrtho && frustum.fNear > 0.0f && std::abs(frustum.fRight) > 2.0f) {
-				scale = 1.0f / frustum.fNear;  // bords donnes au plan proche : ramenes a 1 m
+			if (!camera.ortho && camera.nearPlane > 0.0f && std::abs(camera.right) > 2.0f) {
+				scale = 1.0f / camera.nearPlane;  // bords donnes au plan proche : ramenes a 1 m
 			}
-			a_command.cameraX = camera->world.translate.x / kUnitsPerMeter;
-			a_command.cameraY = camera->world.translate.y / kUnitsPerMeter;
-			a_command.cameraZ = camera->world.translate.z / kUnitsPerMeter;
-			a_command.frustumLeft = frustum.fLeft * scale;
-			a_command.frustumRight = frustum.fRight * scale;
-			a_command.frustumTop = frustum.fTop * scale;
-			a_command.frustumBottom = frustum.fBottom * scale;
+			a_command.cameraX = camera.x / kUnitsPerMeter;
+			a_command.cameraY = camera.y / kUnitsPerMeter;
+			a_command.cameraZ = camera.z / kUnitsPerMeter;
+			a_command.frustumLeft = camera.left * scale;
+			a_command.frustumRight = camera.right * scale;
+			a_command.frustumTop = camera.top * scale;
+			a_command.frustumBottom = camera.bottom * scale;
 			static bool logged = false;
-			if (!logged && frustum.fRight != 0.0f) {
+			if (!logged && camera.right != 0.0f) {
 				logged = true;
 				logger::info("Camera Skyrim : champ de vision gauche {:.3f} droite {:.3f} haut {:.3f} bas {:.3f} (proche {:.1f})",
-					frustum.fLeft, frustum.fRight, frustum.fTop, frustum.fBottom, frustum.fNear);
+					camera.left, camera.right, camera.top, camera.bottom, camera.nearPlane);
 			}
 		}
 	}

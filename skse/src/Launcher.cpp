@@ -387,6 +387,27 @@ namespace skyrimror2::Launcher
 		const bool    hide = Config::Get().HideRoR2Window();
 		const DWORD   pid = RoR2ProcessId();
 
+		// 0.74 : RoR2 tourne derriere Skyrim. Windows 11 ralentit les programmes en arriere-plan (mode "efficacite"),
+		// surtout sur un PC portable : RoR2 mettait plus de 90 s a lancer sa partie. On le lui interdit, et on lui
+		// donne une priorite un peu plus haute (une fois par processus).
+		static DWORD boosted = 0;
+		if (pid != 0 && pid != boosted) {
+			boosted = pid;
+			if (HANDLE process = ::OpenProcess(PROCESS_SET_INFORMATION, FALSE, pid)) {
+				PROCESS_POWER_THROTTLING_STATE state{};
+				state.Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION;
+				state.ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED;
+				state.StateMask = 0;  // jamais ralenti
+				const bool throttleOff = ::SetProcessInformation(process, ProcessPowerThrottling, &state, sizeof(state)) != FALSE;
+				const bool priority = ::SetPriorityClass(process, ABOVE_NORMAL_PRIORITY_CLASS) != FALSE;
+				::CloseHandle(process);
+				logger::info("RoR2 en arriere-plan : ralentissement de Windows {}, priorite haute {}", throttleOff ? "coupe" : "non coupe",
+					priority ? "oui" : "non");
+			} else {
+				logger::warn("RoR2 en arriere-plan : processus inaccessible (erreur {})", ::GetLastError());
+			}
+		}
+
 		struct Search
 		{
 			DWORD             pid;
