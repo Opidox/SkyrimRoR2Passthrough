@@ -394,11 +394,17 @@ namespace skyrimror2::Launcher
 		if (pid != 0 && pid != boosted) {
 			boosted = pid;
 			if (HANDLE process = ::OpenProcess(PROCESS_SET_INFORMATION, FALSE, pid)) {
-				PROCESS_POWER_THROTTLING_STATE state{};
-				state.Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION;
-				state.ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED;
-				state.StateMask = 0;  // jamais ralenti
-				const bool throttleOff = ::SetProcessInformation(process, ProcessPowerThrottling, &state, sizeof(state)) != FALSE;
+				// SetProcessInformation et sa structure, decrits ici (absents des en-tetes avec nos reglages de compilation).
+				struct PowerThrottling
+				{
+					ULONG version = 1;        // PROCESS_POWER_THROTTLING_CURRENT_VERSION
+					ULONG controlMask = 0x1;  // PROCESS_POWER_THROTTLING_EXECUTION_SPEED
+					ULONG stateMask = 0;      // jamais ralenti
+				} state;
+				constexpr int kProcessPowerThrottling = 4;
+				using SetInfo = BOOL(WINAPI*)(HANDLE, int, LPVOID, DWORD);
+				const auto setInfo = reinterpret_cast<SetInfo>(::GetProcAddress(::GetModuleHandleW(L"kernel32.dll"), "SetProcessInformation"));
+				const bool throttleOff = setInfo && setInfo(process, kProcessPowerThrottling, &state, sizeof(state)) != FALSE;
 				const bool priority = ::SetPriorityClass(process, ABOVE_NORMAL_PRIORITY_CLASS) != FALSE;
 				::CloseHandle(process);
 				logger::info("RoR2 en arriere-plan : ralentissement de Windows {}, priorite haute {}", throttleOff ? "coupe" : "non coupe",
