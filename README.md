@@ -37,6 +37,20 @@ newly converted models become visible in Skyrim from the next launch.
 - On a fresh install, launch Skyrim **once without mods** first (it creates its settings files), then install SKSE
   and the mod.
 
+## Installation (players)
+
+1. **Risk of Rain 2**: in r2modman, use a profile named exactly **`Passthrough`** — Skyrim starts RoR2 with
+   this profile. The easiest way is to import the ready-made profile (BepInEx and the mods it needs):
+   *Profiles* > *Import / Update* > *Import new profile* > *From code*, enter this code and name the profile `Passthrough`:
+   ```
+   01a13fd7-86a5-fe65-01d1-5b27a2b82b96
+   ```
+   Then add the RoR2 part of the mod (*Settings* > *Import local mod* > the RoR2 zip from the release).
+   Using another profile name? Put its folder in `SkyrimRoR2.ini`, `[Lancement] ProfilR2modman = ...`.
+2. **Skyrim**: launch it once without mods, install SKSE, then install the Skyrim zip from the release with
+   Mod Organizer 2 and enable `SkyrimRoR2.esp`.
+3. Launch Skyrim through SKSE: it starts RoR2 by itself in the background.
+
 ## Building
 
 ### Risk of Rain 2 plugin (C#)
