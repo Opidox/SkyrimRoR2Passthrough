@@ -1,0 +1,8 @@
+<!-- Copy this file to LocalPaths.props (same folder) and put your own folders in it.
+     LocalPaths.props is ignored by git, so your paths stay on your PC. -->
+<Project>
+  <PropertyGroup>
+    <GameDir>D:\SteamLibrary\steamapps\common\Risk of Rain 2</GameDir>
+    <ProfileDir>$(APPDATA)\r2modmanPlus-local\RiskOfRain2\profiles\Passthrough</ProfileDir>
+  </PropertyGroup>
+</Project>

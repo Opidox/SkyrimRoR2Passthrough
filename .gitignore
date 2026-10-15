@@ -1,0 +1,19 @@
+# Build outputs
+bin/
+obj/
+dist/
+skse/build/
+*.user
+.vs/
+
+# Downloaded by build-skyrim-plugin.bat
+skse/extern/
+.tools/
+vcpkg_installed/
+
+# Logs and archives
+*.log
+*.zip
+
+# Your own folders (see LocalPaths.props.example)
+LocalPaths.props

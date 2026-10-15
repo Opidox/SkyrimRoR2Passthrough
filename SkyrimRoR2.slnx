@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="SkyrimRoR2/SkyrimRoR2.csproj" />
+  <Project Path="BridgeViewer/BridgeViewer.csproj" />
+</Solution>
