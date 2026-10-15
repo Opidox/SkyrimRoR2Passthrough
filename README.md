@@ -31,8 +31,9 @@ newly converted models become visible in Skyrim from the next launch.
 ## Requirements
 
 - Skyrim Special Edition / Anniversary Edition with **SKSE** (Mod Organizer 2 recommended)
-- Risk of Rain 2 (with the Seekers of the Storm DLC for the newest survivors) and **r2modman** with **BepInEx**
-- Skyrim **1.6.1170** (the version the mod is built and tested on). Newer versions are untested.
+- Risk of Rain 2 and **r2modman** with **BepInEx**. The DLCs are optional: without them, their survivors and items
+  are simply not offered. Only survivors unlocked in your RoR2 profile can be played in Skyrim.
+- Skyrim **1.6.1170** or **1.7.104** (both tested).
 - Both games running at the same time on the same PC
 - On a fresh install, launch Skyrim **once without mods** first (it creates its settings files), then install SKSE
   and the mod.
